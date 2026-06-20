@@ -172,7 +172,7 @@ class PurchaseOrderSubmitView(APIView):
         from apps.core.models import OperationalAuditLog
 
         po = PurchaseOrderService.get_by_public_id(po_id)
-        po = PurchaseOrderService.submit(po=po)
+        po = PurchaseOrderService.submit(po=po, user=request.user)
         log_operation(
             user=request.user,
             module=OperationalAuditLog.Module.SUPPLIERS,

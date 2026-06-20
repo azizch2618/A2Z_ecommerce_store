@@ -20,6 +20,7 @@ urlpatterns = [
     # Trade B2B
     path("trade-accounts/", include("apps.trade_accounts.urls")),
     # Operations
+    path("platform/", include(("apps.erp.urls", "erp"), namespace="erp")),
     path("inventory/", include("apps.inventory.urls")),
     path("suppliers/", include("apps.suppliers.urls")),
     path("pricing/", include("apps.pricing.urls")),

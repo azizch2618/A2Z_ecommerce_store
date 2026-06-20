@@ -39,6 +39,9 @@ ADDRESS = {
 class PhaseCIntegrationSuite(APITestCase):
     def setUp(self):
         RoleService.ensure_system_roles()
+        from django.core.management import call_command
+
+        call_command("seed_erp_foundation", verbosity=0)
 
         self.manager = User.objects.create_user(
             email="phasec-manager@example.com",

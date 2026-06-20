@@ -16,7 +16,13 @@ from apps.trade_accounts.models import TradeAccount, TradeApplication
 
 
 def generate_account_number() -> str:
-    return f"TA-{uuid.uuid4().hex[:8].upper()}"
+    from apps.erp.constants import DocumentType
+    from apps.erp.services.document_sequence import DocumentSequenceService
+
+    try:
+        return DocumentSequenceService.next_number(DocumentType.TRADE_ACCOUNT)
+    except Exception:
+        return f"TA-{uuid.uuid4().hex[:8].upper()}"
 
 
 class TradeAccountService:
@@ -97,13 +103,44 @@ class TradeAdminService:
             payment_terms_days=payment_terms_days,
         )
 
-        log_operation(
+        from apps.erp.constants import AuditModule, DomainEventType, WorkflowCode
+        from apps.erp.services.audit import AuditService
+        from apps.erp.services.events import DomainEventPublisher
+        from apps.erp.services.workflow import WorkflowEngine
+
+        instance = WorkflowEngine.get_for_resource(
+            resource_type="trade_application",
+            resource_id=str(application.public_id),
+        )
+        if instance is None:
+            instance = WorkflowEngine.start(
+                definition_code=WorkflowCode.TRADE_APPROVAL,
+                resource_type="trade_application",
+                resource_id=str(application.public_id),
+                actor=reviewer,
+            )
+        WorkflowEngine.transition(
+            instance=instance,
+            action="approve",
+            actor=reviewer,
+            comment=notes,
+        )
+
+        AuditService.log(
             user=reviewer,
-            module=OperationalAuditLog.Module.TRADE,
+            module=AuditModule.TRADE,
             action="approve",
             resource_type="trade_application",
-            resource_id=application.public_id,
-            details={"credit_limit_cents": credit_limit_cents},
+            resource_id=str(application.public_id),
+            summary="Trade application approved",
+            metadata={"credit_limit_cents": credit_limit_cents},
+        )
+        DomainEventPublisher.publish(
+            event_type=DomainEventType.TRADE_APPROVED,
+            aggregate_type="trade_application",
+            aggregate_id=str(application.public_id),
+            payload={"organization_id": str(org.public_id), "credit_limit_cents": credit_limit_cents},
+            idempotency_key=f"trade.approved:{application.public_id}",
         )
         return application
 
@@ -127,13 +164,44 @@ class TradeAdminService:
             trade_account_status=Customer.TradeStatus.REJECTED,
         )
 
-        log_operation(
+        from apps.erp.constants import AuditModule, DomainEventType, WorkflowCode
+        from apps.erp.services.audit import AuditService
+        from apps.erp.services.events import DomainEventPublisher
+        from apps.erp.services.workflow import WorkflowEngine
+
+        instance = WorkflowEngine.get_for_resource(
+            resource_type="trade_application",
+            resource_id=str(application.public_id),
+        )
+        if instance is None:
+            instance = WorkflowEngine.start(
+                definition_code=WorkflowCode.TRADE_APPROVAL,
+                resource_type="trade_application",
+                resource_id=str(application.public_id),
+                actor=reviewer,
+            )
+        WorkflowEngine.transition(
+            instance=instance,
+            action="reject",
+            actor=reviewer,
+            comment=notes,
+        )
+
+        AuditService.log(
             user=reviewer,
-            module=OperationalAuditLog.Module.TRADE,
+            module=AuditModule.TRADE,
             action="reject",
             resource_type="trade_application",
-            resource_id=application.public_id,
-            details={"notes": notes},
+            resource_id=str(application.public_id),
+            summary="Trade application rejected",
+            metadata={"notes": notes},
+        )
+        DomainEventPublisher.publish(
+            event_type=DomainEventType.TRADE_REJECTED,
+            aggregate_type="trade_application",
+            aggregate_id=str(application.public_id),
+            payload={"notes": notes},
+            idempotency_key=f"trade.rejected:{application.public_id}",
         )
         return application
 

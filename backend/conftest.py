@@ -19,6 +19,7 @@ _PATH_MARKERS: tuple[tuple[str, str], ...] = (
     ("test_security.py", "security"),
     ("test_rbac.py", "security"),
     ("test_role_boundaries.py", "security"),
+    ("apps/erp/tests/", "integration"),
     ("test_catalog_performance.py", "slow"),
 )
 

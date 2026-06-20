@@ -183,9 +183,15 @@ class OrderService:
 
     @staticmethod
     def generate_order_number() -> str:
-        today = timezone.localdate().strftime("%Y%m%d")
-        count = Order.objects.filter(order_number__startswith=f"A2Z-{today}").count() + 1
-        return f"A2Z-{today}-{count:04d}"
+        from apps.erp.constants import DocumentType
+        from apps.erp.services.document_sequence import DocumentSequenceService
+
+        try:
+            return DocumentSequenceService.next_number(DocumentType.SALES_ORDER)
+        except Exception:
+            today = timezone.localdate().strftime("%Y%m%d")
+            count = Order.objects.filter(order_number__startswith=f"SO-{today}").count() + 1
+            return f"SO-{today}-{count:06d}"
 
     @staticmethod
     def staff_orders_queryset() -> QuerySet[Order]:
@@ -367,6 +373,22 @@ class OrderService:
             total_orders=F("total_orders") + 1,
             total_spent_cents=F("total_spent_cents") + order.total_inc_gst_cents,
         )
+
+        from apps.erp.constants import DomainEventType
+        from apps.erp.services.events import DomainEventPublisher
+
+        DomainEventPublisher.publish(
+            event_type=DomainEventType.ORDER_CREATED,
+            aggregate_type="order",
+            aggregate_id=str(order.public_id),
+            payload={
+                "order_number": order.order_number,
+                "total_inc_gst_cents": order.total_inc_gst_cents,
+                "customer_id": str(customer.public_id),
+            },
+            idempotency_key=f"order.created:{order.public_id}",
+        )
+
         return order
 
     @staticmethod
@@ -388,6 +410,18 @@ class OrderService:
 
         InventoryService.validate_order_availability(order)
         OrderService._deduct_inventory_for_order(order)
+
+        from apps.erp.constants import DomainEventType
+        from apps.erp.services.events import DomainEventPublisher
+
+        DomainEventPublisher.publish(
+            event_type=DomainEventType.ORDER_PAID,
+            aggregate_type="order",
+            aggregate_id=str(order.public_id),
+            payload={"order_number": order.order_number},
+            idempotency_key=f"order.paid:{order.public_id}",
+        )
+
         return order
 
     @staticmethod

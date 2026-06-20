@@ -1,0 +1,232 @@
+"""Seed ERP foundation defaults — company, sequences, workflows, templates."""
+from __future__ import annotations
+
+from django.core.management.base import BaseCommand
+from django.db import transaction
+
+from apps.erp.constants import DocumentType, NotificationChannel, WorkflowCode
+from apps.erp.models import (
+    BusinessUnit,
+    Company,
+    Department,
+    CostCenter,
+    NotificationTemplate,
+    PlatformSetting,
+    WorkflowDefinition,
+)
+from apps.erp.services.document_sequence import DocumentSequenceService
+
+
+class Command(BaseCommand):
+    help = "Seed ERP foundation: default company, document sequences, workflows, notification templates."
+
+    @transaction.atomic
+    def handle(self, *args, **options):
+        company, created = Company.objects.get_or_create(
+            code="A2Z",
+            defaults={
+                "legal_name": "A2Z Tools Pty Ltd",
+                "trading_name": "A2Z Tools",
+                "abn": "",
+                "gst_registered": True,
+                "base_currency": "AUD",
+                "email": "admin@a2ztools.com.au",
+                "is_default": True,
+                "is_active": True,
+            },
+        )
+        if not company.is_default:
+            Company.objects.filter(is_default=True).exclude(pk=company.pk).update(is_default=False)
+            company.is_default = True
+            company.save(update_fields=["is_default", "updated_at"])
+
+        bu, _ = BusinessUnit.objects.get_or_create(
+            company=company,
+            code="OPS",
+            defaults={"name": "Operations", "is_active": True},
+        )
+        dept, _ = Department.objects.get_or_create(
+            business_unit=bu,
+            code="WH",
+            defaults={"name": "Warehouse & Logistics", "is_active": True},
+        )
+        CostCenter.objects.get_or_create(
+            department=dept,
+            code="WH-001",
+            defaults={"name": "Sydney Distribution Centre", "is_active": True},
+        )
+
+        DocumentSequenceService.ensure_sequences(company=company)
+
+        WorkflowDefinition.objects.update_or_create(
+            code=WorkflowCode.TRADE_APPROVAL,
+            defaults={
+                "name": "Trade Account Approval",
+                "document_type": "trade_application",
+                "initial_state": "pending",
+                "states": ["pending", "under_review", "approved", "rejected"],
+                "transitions": [
+                    {
+                        "from": "pending",
+                        "to": "under_review",
+                        "action": "review",
+                        "label": "Start Review",
+                        "required_roles": ["trade-reviewer", "admin", "super-admin"],
+                    },
+                    {
+                        "from": "pending",
+                        "to": "approved",
+                        "action": "approve",
+                        "label": "Approve",
+                        "required_roles": ["trade-reviewer", "admin", "super-admin"],
+                        "terminal_states": ["approved"],
+                    },
+                    {
+                        "from": "under_review",
+                        "to": "approved",
+                        "action": "approve",
+                        "label": "Approve",
+                        "required_roles": ["trade-reviewer", "admin", "super-admin"],
+                        "terminal_states": ["approved"],
+                    },
+                    {
+                        "from": "under_review",
+                        "to": "rejected",
+                        "action": "reject",
+                        "label": "Reject",
+                        "required_roles": ["trade-reviewer", "admin", "super-admin"],
+                        "terminal_states": ["rejected"],
+                    },
+                    {
+                        "from": "pending",
+                        "to": "rejected",
+                        "action": "reject",
+                        "label": "Reject",
+                        "required_roles": ["trade-reviewer", "admin", "super-admin"],
+                        "terminal_states": ["rejected"],
+                    },
+                ],
+                "is_active": True,
+            },
+        )
+
+        WorkflowDefinition.objects.update_or_create(
+            code=WorkflowCode.PO_APPROVAL,
+            defaults={
+                "name": "Purchase Order Approval",
+                "document_type": "purchase_order",
+                "initial_state": "draft",
+                "states": ["draft", "submitted", "approved", "confirmed", "cancelled"],
+                "transitions": [
+                    {
+                        "from": "draft",
+                        "to": "submitted",
+                        "action": "submit",
+                        "label": "Submit for Approval",
+                        "required_roles": ["manager", "admin", "super-admin"],
+                    },
+                    {
+                        "from": "submitted",
+                        "to": "approved",
+                        "action": "approve",
+                        "label": "Approve",
+                        "required_roles": ["manager", "admin", "super-admin"],
+                    },
+                    {
+                        "from": "approved",
+                        "to": "confirmed",
+                        "action": "confirm",
+                        "label": "Confirm with Supplier",
+                        "required_roles": ["manager", "admin", "super-admin"],
+                        "terminal_states": ["confirmed"],
+                    },
+                    {
+                        "from": "draft",
+                        "to": "cancelled",
+                        "action": "cancel",
+                        "label": "Cancel",
+                        "required_roles": ["manager", "admin", "super-admin"],
+                        "terminal_states": ["cancelled"],
+                    },
+                    {
+                        "from": "submitted",
+                        "to": "cancelled",
+                        "action": "cancel",
+                        "label": "Cancel",
+                        "required_roles": ["manager", "admin", "super-admin"],
+                        "terminal_states": ["cancelled"],
+                    },
+                ],
+                "is_active": True,
+            },
+        )
+
+        WorkflowDefinition.objects.update_or_create(
+            code=WorkflowCode.LEAVE_APPROVAL,
+            defaults={
+                "name": "Leave Request Approval (Future HRM)",
+                "document_type": "leave_request",
+                "initial_state": "draft",
+                "states": ["draft", "submitted", "approved", "rejected"],
+                "transitions": [
+                    {
+                        "from": "draft",
+                        "to": "submitted",
+                        "action": "submit",
+                        "label": "Submit",
+                        "required_roles": ["employee"],
+                    },
+                    {
+                        "from": "submitted",
+                        "to": "approved",
+                        "action": "approve",
+                        "label": "Approve",
+                        "required_roles": ["manager", "admin"],
+                        "terminal_states": ["approved"],
+                    },
+                    {
+                        "from": "submitted",
+                        "to": "rejected",
+                        "action": "reject",
+                        "label": "Reject",
+                        "required_roles": ["manager", "admin"],
+                        "terminal_states": ["rejected"],
+                    },
+                ],
+                "is_active": True,
+                "metadata": {"future_module": "hrm"},
+            },
+        )
+
+        NotificationTemplate.objects.update_or_create(
+            code="trade_approved",
+            defaults={
+                "name": "Trade Account Approved",
+                "channel": NotificationChannel.EMAIL,
+                "subject_template": "Your trade account has been approved",
+                "body_template": "Hello, your trade account application has been approved.",
+                "is_active": True,
+            },
+        )
+        NotificationTemplate.objects.update_or_create(
+            code="po_submitted",
+            defaults={
+                "name": "Purchase Order Submitted",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "PO {po_number} submitted",
+                "body_template": "Purchase order {po_number} has been submitted for approval.",
+                "is_active": True,
+            },
+        )
+
+        PlatformSetting.objects.update_or_create(
+            company=company,
+            key="platform.version",
+            defaults={"value": {"version": "1.0.0"}, "description": "ERP foundation version"},
+        )
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"ERP foundation seeded ({'created' if created else 'updated'} company {company.code})"
+            )
+        )

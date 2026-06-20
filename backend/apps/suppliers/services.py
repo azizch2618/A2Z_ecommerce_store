@@ -22,9 +22,15 @@ class SupplierService:
 
 
 def generate_po_number() -> str:
-    stamp = timezone.now().strftime("%Y%m%d")
-    token = uuid.uuid4().hex[:6].upper()
-    return f"PO-{stamp}-{token}"
+    from apps.erp.constants import DocumentType
+    from apps.erp.services.document_sequence import DocumentSequenceService
+
+    try:
+        return DocumentSequenceService.next_number(DocumentType.PURCHASE_ORDER)
+    except Exception:
+        stamp = timezone.now().strftime("%Y%m%d")
+        token = uuid.uuid4().hex[:6].upper()
+        return f"PO-{stamp}-{token}"
 
 
 class PurchaseOrderService:
@@ -86,15 +92,55 @@ class PurchaseOrderService:
 
         po.total_ex_gst_cents = total
         po.save(update_fields=["total_ex_gst_cents", "updated_at"])
+
+        from apps.erp.constants import DomainEventType, WorkflowCode
+        from apps.erp.services.events import DomainEventPublisher
+        from apps.erp.services.workflow import WorkflowEngine
+
+        WorkflowEngine.start(
+            definition_code=WorkflowCode.PO_APPROVAL,
+            resource_type="purchase_order",
+            resource_id=str(po.public_id),
+            actor=user,
+        )
+        DomainEventPublisher.publish(
+            event_type=DomainEventType.PO_CREATED,
+            aggregate_type="purchase_order",
+            aggregate_id=str(po.public_id),
+            payload={"po_number": po.po_number},
+            idempotency_key=f"po.created:{po.public_id}",
+        )
         return po
 
     @staticmethod
     @transaction.atomic
-    def submit(*, po: PurchaseOrder) -> PurchaseOrder:
+    def submit(*, po: PurchaseOrder, user=None) -> PurchaseOrder:
         if po.status != PurchaseOrder.Status.DRAFT:
             raise ConflictError("Only draft purchase orders can be submitted.")
         po.status = PurchaseOrder.Status.SUBMITTED
         po.save(update_fields=["status", "updated_at"])
+
+        from apps.erp.constants import DomainEventType, WorkflowCode
+        from apps.erp.services.events import DomainEventPublisher
+        from apps.erp.services.workflow import WorkflowEngine
+
+        instance = WorkflowEngine.get_for_resource(
+            resource_type="purchase_order",
+            resource_id=str(po.public_id),
+        )
+        if instance:
+            WorkflowEngine.transition(
+                instance=instance,
+                action="submit",
+                actor=user,
+            )
+        DomainEventPublisher.publish(
+            event_type=DomainEventType.PO_SUBMITTED,
+            aggregate_type="purchase_order",
+            aggregate_id=str(po.public_id),
+            payload={"po_number": po.po_number},
+            idempotency_key=f"po.submitted:{po.public_id}",
+        )
         return po
 
     @staticmethod
@@ -171,11 +217,25 @@ class PurchaseOrderService:
         elif any_received:
             po.status = PurchaseOrder.Status.PARTIAL_RECEIVED
         po.save(update_fields=["status", "updated_at"])
-        return po
 
-    @staticmethod
-    @transaction.atomic
-    def cancel(*, po: PurchaseOrder) -> PurchaseOrder:
+        from apps.erp.constants import DomainEventType
+        from apps.erp.services.events import DomainEventPublisher
+
+        DomainEventPublisher.publish(
+            event_type=DomainEventType.PO_RECEIVED,
+            aggregate_type="purchase_order",
+            aggregate_id=str(po.public_id),
+            payload={"po_number": po.po_number, "status": po.status},
+            idempotency_key=f"po.received:{po.public_id}:{po.status}",
+        )
+        DomainEventPublisher.publish(
+            event_type=DomainEventType.INVENTORY_RECEIVED,
+            aggregate_type="purchase_order",
+            aggregate_id=str(po.public_id),
+            payload={"po_number": po.po_number, "warehouse_code": po.warehouse.code},
+            idempotency_key=f"inventory.received:{po.public_id}",
+        )
+        return po
         if po.status == PurchaseOrder.Status.RECEIVED:
             raise ConflictError("Received purchase orders cannot be cancelled.")
         po.status = PurchaseOrder.Status.CANCELLED
