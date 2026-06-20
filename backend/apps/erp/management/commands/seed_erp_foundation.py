@@ -123,21 +123,37 @@ class Command(BaseCommand):
                         "to": "submitted",
                         "action": "submit",
                         "label": "Submit for Approval",
-                        "required_roles": ["manager", "admin", "super-admin"],
+                        "required_roles": [
+                            "procurement-officer",
+                            "procurement-manager",
+                            "manager",
+                            "admin",
+                            "super-admin",
+                        ],
                     },
                     {
                         "from": "submitted",
                         "to": "approved",
                         "action": "approve",
                         "label": "Approve",
-                        "required_roles": ["manager", "admin", "super-admin"],
+                        "required_roles": [
+                            "procurement-manager",
+                            "manager",
+                            "admin",
+                            "super-admin",
+                        ],
                     },
                     {
                         "from": "approved",
                         "to": "confirmed",
                         "action": "confirm",
                         "label": "Confirm with Supplier",
-                        "required_roles": ["manager", "admin", "super-admin"],
+                        "required_roles": [
+                            "procurement-manager",
+                            "manager",
+                            "admin",
+                            "super-admin",
+                        ],
                         "terminal_states": ["confirmed"],
                     },
                     {
@@ -145,7 +161,13 @@ class Command(BaseCommand):
                         "to": "cancelled",
                         "action": "cancel",
                         "label": "Cancel",
-                        "required_roles": ["manager", "admin", "super-admin"],
+                        "required_roles": [
+                            "procurement-officer",
+                            "procurement-manager",
+                            "manager",
+                            "admin",
+                            "super-admin",
+                        ],
                         "terminal_states": ["cancelled"],
                     },
                     {
@@ -153,7 +175,12 @@ class Command(BaseCommand):
                         "to": "cancelled",
                         "action": "cancel",
                         "label": "Cancel",
-                        "required_roles": ["manager", "admin", "super-admin"],
+                        "required_roles": [
+                            "procurement-manager",
+                            "manager",
+                            "admin",
+                            "super-admin",
+                        ],
                         "terminal_states": ["cancelled"],
                     },
                 ],
@@ -267,6 +294,246 @@ class Command(BaseCommand):
                         "terminal_states": ["rejected"],
                     },
                 ],
+                "is_active": True,
+            },
+        )
+
+        WorkflowDefinition.objects.update_or_create(
+            code=WorkflowCode.PR_APPROVAL,
+            defaults={
+                "name": "Purchase Requisition Approval",
+                "document_type": "purchase_request",
+                "initial_state": "submitted",
+                "states": ["submitted", "approved", "rejected"],
+                "transitions": [
+                    {
+                        "from": "submitted",
+                        "to": "approved",
+                        "action": "approve",
+                        "label": "Approve Requisition",
+                        "required_roles": [
+                            "procurement-manager",
+                            "manager",
+                            "admin",
+                            "super-admin",
+                        ],
+                        "terminal_states": ["approved"],
+                    },
+                    {
+                        "from": "submitted",
+                        "to": "rejected",
+                        "action": "reject",
+                        "label": "Reject Requisition",
+                        "required_roles": [
+                            "procurement-manager",
+                            "manager",
+                            "admin",
+                            "super-admin",
+                        ],
+                        "terminal_states": ["rejected"],
+                    },
+                ],
+                "is_active": True,
+            },
+        )
+
+        WorkflowDefinition.objects.update_or_create(
+            code=WorkflowCode.WMS_TRANSFER_APPROVAL,
+            defaults={
+                "name": "WMS Stock Transfer Approval",
+                "document_type": "stock_transfer",
+                "initial_state": "draft",
+                "states": ["draft", "submitted", "approved", "rejected"],
+                "transitions": [
+                    {
+                        "from": "draft",
+                        "to": "submitted",
+                        "action": "submit",
+                        "label": "Submit Transfer",
+                        "required_roles": [
+                            "warehouse-operator",
+                            "warehouse-manager",
+                            "admin",
+                            "super-admin",
+                        ],
+                    },
+                    {
+                        "from": "submitted",
+                        "to": "approved",
+                        "action": "approve",
+                        "label": "Approve Transfer",
+                        "required_roles": [
+                            "warehouse-manager",
+                            "admin",
+                            "super-admin",
+                        ],
+                        "terminal_states": ["approved"],
+                    },
+                    {
+                        "from": "submitted",
+                        "to": "rejected",
+                        "action": "reject",
+                        "label": "Reject Transfer",
+                        "required_roles": [
+                            "warehouse-manager",
+                            "admin",
+                            "super-admin",
+                        ],
+                        "terminal_states": ["rejected"],
+                    },
+                ],
+                "is_active": True,
+            },
+        )
+
+        WorkflowDefinition.objects.update_or_create(
+            code=WorkflowCode.WMS_ADJUSTMENT_APPROVAL,
+            defaults={
+                "name": "WMS Inventory Adjustment Approval",
+                "document_type": "inventory_adjustment",
+                "initial_state": "draft",
+                "states": ["draft", "submitted", "approved", "rejected"],
+                "transitions": [
+                    {
+                        "from": "draft",
+                        "to": "submitted",
+                        "action": "submit",
+                        "label": "Submit Adjustment",
+                        "required_roles": [
+                            "warehouse-operator",
+                            "warehouse-manager",
+                            "admin",
+                            "super-admin",
+                        ],
+                    },
+                    {
+                        "from": "submitted",
+                        "to": "approved",
+                        "action": "approve",
+                        "label": "Approve Adjustment",
+                        "required_roles": [
+                            "warehouse-manager",
+                            "admin",
+                            "super-admin",
+                        ],
+                        "terminal_states": ["approved"],
+                    },
+                    {
+                        "from": "submitted",
+                        "to": "rejected",
+                        "action": "reject",
+                        "label": "Reject Adjustment",
+                        "required_roles": [
+                            "warehouse-manager",
+                            "admin",
+                            "super-admin",
+                        ],
+                        "terminal_states": ["rejected"],
+                    },
+                ],
+                "is_active": True,
+            },
+        )
+
+        WorkflowDefinition.objects.update_or_create(
+            code=WorkflowCode.AR_INVOICE_APPROVAL,
+            defaults={
+                "name": "AR Invoice Approval",
+                "document_type": "customer_invoice",
+                "initial_state": "draft",
+                "states": ["draft", "submitted", "approved", "rejected"],
+                "transitions": [
+                    {
+                        "from": "draft",
+                        "to": "submitted",
+                        "action": "submit",
+                        "label": "Submit Invoice",
+                        "required_roles": ["finance-user", "finance-manager", "admin", "super-admin"],
+                    },
+                    {
+                        "from": "submitted",
+                        "to": "approved",
+                        "action": "approve",
+                        "label": "Approve Invoice",
+                        "required_roles": ["finance-manager", "admin", "super-admin"],
+                        "terminal_states": ["approved"],
+                    },
+                    {
+                        "from": "submitted",
+                        "to": "rejected",
+                        "action": "reject",
+                        "label": "Reject Invoice",
+                        "required_roles": ["finance-manager", "admin", "super-admin"],
+                        "terminal_states": ["rejected"],
+                    },
+                ],
+                "is_active": True,
+            },
+        )
+
+        WorkflowDefinition.objects.update_or_create(
+            code=WorkflowCode.AP_INVOICE_APPROVAL,
+            defaults={
+                "name": "AP Invoice Approval",
+                "document_type": "supplier_invoice",
+                "initial_state": "submitted",
+                "states": ["submitted", "matched", "approved", "rejected"],
+                "transitions": [
+                    {
+                        "from": "submitted",
+                        "to": "matched",
+                        "action": "match",
+                        "label": "Match to PO/GRN",
+                        "required_roles": ["finance-user", "finance-manager", "admin", "super-admin"],
+                    },
+                    {
+                        "from": "matched",
+                        "to": "approved",
+                        "action": "approve",
+                        "label": "Approve Invoice",
+                        "required_roles": ["finance-manager", "admin", "super-admin"],
+                        "terminal_states": ["approved"],
+                    },
+                    {
+                        "from": "submitted",
+                        "to": "rejected",
+                        "action": "reject",
+                        "label": "Reject Invoice",
+                        "required_roles": ["finance-manager", "admin", "super-admin"],
+                        "terminal_states": ["rejected"],
+                    },
+                ],
+                "is_active": True,
+            },
+        )
+
+        NotificationTemplate.objects.update_or_create(
+            code="pr_submitted",
+            defaults={
+                "name": "Purchase Requisition Submitted",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "PR {request_number} submitted",
+                "body_template": "Purchase requisition {request_number} requires approval.",
+                "is_active": True,
+            },
+        )
+        NotificationTemplate.objects.update_or_create(
+            code="goods_received",
+            defaults={
+                "name": "Goods Received",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "GRN {grn_number} posted",
+                "body_template": "Goods receipt {grn_number} recorded for PO {po_number}.",
+                "is_active": True,
+            },
+        )
+        NotificationTemplate.objects.update_or_create(
+            code="supplier_delivery_delayed",
+            defaults={
+                "name": "Supplier Delivery Delayed",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "PO {po_number} delivery delayed",
+                "body_template": "Purchase order {po_number} was received after the expected date.",
                 "is_active": True,
             },
         )

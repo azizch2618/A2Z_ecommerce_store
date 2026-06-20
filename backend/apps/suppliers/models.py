@@ -53,6 +53,9 @@ class PurchaseOrder(PublicIdModel):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
     total_ex_gst_cents = models.BigIntegerField(default=0)
     expected_at = models.DateTimeField(null=True, blank=True)
+    supplier_acknowledged_at = models.DateTimeField(null=True, blank=True)
+    payment_status = models.CharField(max_length=20, default="pending")
+    notes = models.TextField(blank=True)
     created_by = models.ForeignKey(
         "accounts.User",
         on_delete=models.SET_NULL,

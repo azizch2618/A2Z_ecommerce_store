@@ -36,6 +36,23 @@ class PermissionCodename:
     QUOTES_VIEW = "quotes.view"
     QUOTES_MANAGE = "quotes.manage"
     QUOTES_APPROVE = "quotes.approve"
+    PROCUREMENT_VIEW = "procurement.view"
+    PROCUREMENT_MANAGE = "procurement.manage"
+    PROCUREMENT_APPROVE = "procurement.approve"
+    SUPPLIER_PORTAL = "supplier.portal"
+    WMS_VIEW = "wms.view"
+    WMS_MANAGE = "wms.manage"
+    WMS_APPROVE = "wms.approve"
+    WMS_EXECUTE = "wms.execute"
+    ACCOUNTING_VIEW = "accounting.view"
+    ACCOUNTING_MANAGE = "accounting.manage"
+    ACCOUNTING_POST = "accounting.post"
+    RECEIVABLES_VIEW = "receivables.view"
+    RECEIVABLES_MANAGE = "receivables.manage"
+    RECEIVABLES_APPROVE = "receivables.approve"
+    PAYABLES_VIEW = "payables.view"
+    PAYABLES_MANAGE = "payables.manage"
+    PAYABLES_APPROVE = "payables.approve"
 
 
 SYSTEM_PERMISSIONS: tuple[dict[str, str], ...] = (
@@ -67,6 +84,23 @@ SYSTEM_PERMISSIONS: tuple[dict[str, str], ...] = (
     {"codename": PermissionCodename.QUOTES_VIEW, "module": "quotes", "description": "View quotations"},
     {"codename": PermissionCodename.QUOTES_MANAGE, "module": "quotes", "description": "Create and manage quotations"},
     {"codename": PermissionCodename.QUOTES_APPROVE, "module": "quotes", "description": "Approve or reject quotations"},
+    {"codename": PermissionCodename.PROCUREMENT_VIEW, "module": "procurement", "description": "View procurement dashboard and requisitions"},
+    {"codename": PermissionCodename.PROCUREMENT_MANAGE, "module": "procurement", "description": "Create and manage purchase requisitions and POs"},
+    {"codename": PermissionCodename.PROCUREMENT_APPROVE, "module": "procurement", "description": "Approve purchase requisitions and POs"},
+    {"codename": PermissionCodename.SUPPLIER_PORTAL, "module": "procurement", "description": "Supplier portal access"},
+    {"codename": PermissionCodename.WMS_VIEW, "module": "wms", "description": "View WMS dashboard and bin locations"},
+    {"codename": PermissionCodename.WMS_MANAGE, "module": "wms", "description": "Manage transfers, picks, and cycle counts"},
+    {"codename": PermissionCodename.WMS_APPROVE, "module": "wms", "description": "Approve transfers and adjustments"},
+    {"codename": PermissionCodename.WMS_EXECUTE, "module": "wms", "description": "Execute picks, putaway, and counts"},
+    {"codename": PermissionCodename.ACCOUNTING_VIEW, "module": "accounting", "description": "View chart of accounts, journals, and financial reports"},
+    {"codename": PermissionCodename.ACCOUNTING_MANAGE, "module": "accounting", "description": "Create draft journal entries and manage COA"},
+    {"codename": PermissionCodename.ACCOUNTING_POST, "module": "accounting", "description": "Post journals and close accounting periods"},
+    {"codename": PermissionCodename.RECEIVABLES_VIEW, "module": "receivables", "description": "View customer invoices, statements, and AR reports"},
+    {"codename": PermissionCodename.RECEIVABLES_MANAGE, "module": "receivables", "description": "Create and manage customer invoices and payments"},
+    {"codename": PermissionCodename.RECEIVABLES_APPROVE, "module": "receivables", "description": "Approve credit notes and high-value AR actions"},
+    {"codename": PermissionCodename.PAYABLES_VIEW, "module": "payables", "description": "View supplier invoices, statements, and AP reports"},
+    {"codename": PermissionCodename.PAYABLES_MANAGE, "module": "payables", "description": "Create and manage supplier invoices and payments"},
+    {"codename": PermissionCodename.PAYABLES_APPROVE, "module": "payables", "description": "Approve supplier invoices and debit notes"},
 )
 
 _ALL_PERMISSIONS = frozenset(p["codename"] for p in SYSTEM_PERMISSIONS)
@@ -79,7 +113,16 @@ INTERNAL_ROLES = frozenset({
     RoleSlug.SALES_REP,
     RoleSlug.CUSTOMER_SERVICE,
     RoleSlug.TRADE_REVIEWER,
+    RoleSlug.PROCUREMENT_OFFICER,
+    RoleSlug.PROCUREMENT_MANAGER,
+    RoleSlug.WAREHOUSE_OPERATOR,
+    RoleSlug.FINANCE_USER,
+    RoleSlug.FINANCE_MANAGER,
     RoleSlug.STAFF,
+})
+
+SUPPLIER_ROLES = frozenset({
+    RoleSlug.SUPPLIER_USER,
 })
 
 CUSTOMER_ROLES = frozenset({
@@ -108,6 +151,18 @@ _MANAGER_PERMS = frozenset({
     PermissionCodename.QUOTES_VIEW,
     PermissionCodename.QUOTES_MANAGE,
     PermissionCodename.QUOTES_APPROVE,
+    PermissionCodename.PROCUREMENT_VIEW,
+    PermissionCodename.PROCUREMENT_MANAGE,
+    PermissionCodename.PROCUREMENT_APPROVE,
+    PermissionCodename.ACCOUNTING_VIEW,
+    PermissionCodename.ACCOUNTING_MANAGE,
+    PermissionCodename.ACCOUNTING_POST,
+    PermissionCodename.RECEIVABLES_VIEW,
+    PermissionCodename.RECEIVABLES_MANAGE,
+    PermissionCodename.RECEIVABLES_APPROVE,
+    PermissionCodename.PAYABLES_VIEW,
+    PermissionCodename.PAYABLES_MANAGE,
+    PermissionCodename.PAYABLES_APPROVE,
 })
 
 ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
@@ -124,6 +179,40 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
         PermissionCodename.ORDERS_VIEW,
         PermissionCodename.SUPPLIERS_VIEW,
         PermissionCodename.CATALOG_VIEW,
+        PermissionCodename.PROCUREMENT_VIEW,
+        PermissionCodename.WMS_VIEW,
+        PermissionCodename.WMS_MANAGE,
+        PermissionCodename.WMS_APPROVE,
+        PermissionCodename.WMS_EXECUTE,
+    }),
+    RoleSlug.WAREHOUSE_OPERATOR: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.INVENTORY_VIEW,
+        PermissionCodename.WAREHOUSE_VIEW,
+        PermissionCodename.WMS_VIEW,
+        PermissionCodename.WMS_EXECUTE,
+    }),
+    RoleSlug.PROCUREMENT_OFFICER: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.CATALOG_VIEW,
+        PermissionCodename.SUPPLIERS_VIEW,
+        PermissionCodename.INVENTORY_VIEW,
+        PermissionCodename.PROCUREMENT_VIEW,
+        PermissionCodename.PROCUREMENT_MANAGE,
+    }),
+    RoleSlug.PROCUREMENT_MANAGER: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.CATALOG_VIEW,
+        PermissionCodename.SUPPLIERS_VIEW,
+        PermissionCodename.SUPPLIERS_MANAGE,
+        PermissionCodename.INVENTORY_VIEW,
+        PermissionCodename.REPORTS_VIEW,
+        PermissionCodename.PROCUREMENT_VIEW,
+        PermissionCodename.PROCUREMENT_MANAGE,
+        PermissionCodename.PROCUREMENT_APPROVE,
+    }),
+    RoleSlug.SUPPLIER_USER: frozenset({
+        PermissionCodename.SUPPLIER_PORTAL,
     }),
     RoleSlug.SALES_REP: frozenset({
         PermissionCodename.DASHBOARD_VIEW,
@@ -153,6 +242,30 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
         PermissionCodename.TRADE_VIEW,
         PermissionCodename.TRADE_APPROVE,
         PermissionCodename.CUSTOMERS_VIEW,
+    }),
+    RoleSlug.FINANCE_USER: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.REPORTS_VIEW,
+        PermissionCodename.ACCOUNTING_VIEW,
+        PermissionCodename.ACCOUNTING_MANAGE,
+        PermissionCodename.RECEIVABLES_VIEW,
+        PermissionCodename.RECEIVABLES_MANAGE,
+        PermissionCodename.PAYABLES_VIEW,
+        PermissionCodename.PAYABLES_MANAGE,
+    }),
+    RoleSlug.FINANCE_MANAGER: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.REPORTS_VIEW,
+        PermissionCodename.REPORTS_EXPORT,
+        PermissionCodename.ACCOUNTING_VIEW,
+        PermissionCodename.ACCOUNTING_MANAGE,
+        PermissionCodename.ACCOUNTING_POST,
+        PermissionCodename.RECEIVABLES_VIEW,
+        PermissionCodename.RECEIVABLES_MANAGE,
+        PermissionCodename.RECEIVABLES_APPROVE,
+        PermissionCodename.PAYABLES_VIEW,
+        PermissionCodename.PAYABLES_MANAGE,
+        PermissionCodename.PAYABLES_APPROVE,
     }),
     RoleSlug.TRADE_CUSTOMER: frozenset({
         PermissionCodename.STORE_CHECKOUT,

@@ -17,7 +17,20 @@ export const ADMIN_ROUTE_PERMISSIONS: Record<string, PermissionCodename> = {
   "/admin-dashboard/analytics": Permission.ANALYTICS_VIEW,
   "/admin-dashboard/crm": Permission.CRM_VIEW,
   "/admin-dashboard/quotes": Permission.QUOTES_VIEW,
+  "/admin-dashboard/procurement": Permission.PROCUREMENT_VIEW,
+  "/admin-dashboard/wms": Permission.WMS_VIEW,
+  "/warehouse-mobile": Permission.WMS_EXECUTE,
   "/admin-dashboard/settings": Permission.SETTINGS_VIEW,
+};
+
+/** Mobile warehouse route permissions. */
+export const WAREHOUSE_MOBILE_ROUTE_PERMISSIONS: Record<string, PermissionCodename> = {
+  "/warehouse-mobile": Permission.WMS_EXECUTE,
+};
+
+/** Supplier portal route permissions. */
+export const SUPPLIER_PORTAL_ROUTE_PERMISSIONS: Record<string, PermissionCodename> = {
+  "/supplier-portal": Permission.SUPPLIER_PORTAL,
 };
 
 /** Minimum permission to access any admin route. */
@@ -27,13 +40,26 @@ export const ADMIN_PORTAL_PERMISSION = Permission.DASHBOARD_VIEW;
 export const ACCOUNT_ROUTES = ["/account", "/checkout"] as const;
 
 export function getRequiredPermissionForPath(pathname: string): PermissionCodename | null {
-  const exact = ADMIN_ROUTE_PERMISSIONS[pathname];
+  const exact =
+    ADMIN_ROUTE_PERMISSIONS[pathname] ??
+    SUPPLIER_PORTAL_ROUTE_PERMISSIONS[pathname] ??
+    WAREHOUSE_MOBILE_ROUTE_PERMISSIONS[pathname];
   if (exact) return exact;
 
-  const match = Object.entries(ADMIN_ROUTE_PERMISSIONS).find(([route]) =>
+  const adminMatch = Object.entries(ADMIN_ROUTE_PERMISSIONS).find(([route]) =>
     route !== "/admin-dashboard" && pathname.startsWith(route)
   );
-  return match ? match[1] : null;
+  if (adminMatch) return adminMatch[1];
+
+  const supplierMatch = Object.entries(SUPPLIER_PORTAL_ROUTE_PERMISSIONS).find(([route]) =>
+    pathname.startsWith(route)
+  );
+  if (supplierMatch) return supplierMatch[1];
+
+  const mobileMatch = Object.entries(WAREHOUSE_MOBILE_ROUTE_PERMISSIONS).find(([route]) =>
+    pathname.startsWith(route)
+  );
+  return mobileMatch ? mobileMatch[1] : null;
 }
 
 export function hasPermission(
@@ -85,6 +111,9 @@ export function canAccessAdminPortal(
       "sales-representative",
       "customer-service",
       "trade-reviewer",
+      "procurement-officer",
+      "procurement-manager",
+      "warehouse-operator",
       "staff",
     ])
   );

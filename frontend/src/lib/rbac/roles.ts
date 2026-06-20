@@ -9,6 +9,10 @@ export const Role = {
   CUSTOMER_SERVICE: "customer-service",
   TRADE_REVIEWER: "trade-reviewer",
   TRADE_CUSTOMER: "trade-customer",
+  PROCUREMENT_OFFICER: "procurement-officer",
+  PROCUREMENT_MANAGER: "procurement-manager",
+  WAREHOUSE_OPERATOR: "warehouse-operator",
+  SUPPLIER_USER: "supplier-user",
   CUSTOMER: "customer",
   STAFF: "staff",
 } as const;
@@ -23,6 +27,9 @@ export const ADMIN_PORTAL_ROLES: RoleSlug[] = [
   Role.SALES_REP,
   Role.CUSTOMER_SERVICE,
   Role.TRADE_REVIEWER,
+  Role.PROCUREMENT_OFFICER,
+  Role.PROCUREMENT_MANAGER,
+  Role.WAREHOUSE_OPERATOR,
   Role.STAFF,
 ];
 
@@ -34,6 +41,10 @@ export const ROLE_LABELS: Record<RoleSlug, string> = {
   [Role.SALES_REP]: "Sales Representative",
   [Role.CUSTOMER_SERVICE]: "Customer Service",
   [Role.TRADE_REVIEWER]: "Trade Reviewer",
+  [Role.PROCUREMENT_OFFICER]: "Procurement Officer",
+  [Role.PROCUREMENT_MANAGER]: "Procurement Manager",
+  [Role.WAREHOUSE_OPERATOR]: "Warehouse Operator",
+  [Role.SUPPLIER_USER]: "Supplier User",
   [Role.TRADE_CUSTOMER]: "Trade Customer",
   [Role.CUSTOMER]: "Customer",
   [Role.STAFF]: "Staff",

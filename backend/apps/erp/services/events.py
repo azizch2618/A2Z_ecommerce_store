@@ -214,3 +214,157 @@ def _quote_converted_handler(event: DomainEvent) -> None:
         metadata=event.payload,
         mirror_operational=False,
     )
+
+
+@_register_handler(DomainEventType.PURCHASE_REQUEST_CREATED)
+def _purchase_request_created_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.PROCUREMENT,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Purchase request created: {event.payload.get('request_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
+
+
+@_register_handler(DomainEventType.PURCHASE_REQUEST_APPROVED)
+def _purchase_request_approved_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.PROCUREMENT,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Purchase request approved: {event.payload.get('request_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
+
+
+@_register_handler(DomainEventType.GOODS_RECEIVED)
+def _goods_received_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.PROCUREMENT,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Goods received: {event.payload.get('grn_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
+
+
+@_register_handler(DomainEventType.SUPPLIER_DELIVERY_DELAYED)
+def _supplier_delivery_delayed_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+    from apps.erp.services.notifications import NotificationService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.PROCUREMENT,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Delivery delayed: {event.payload.get('po_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
+
+
+@_register_handler(DomainEventType.INVENTORY_TRANSFERRED)
+def _inventory_transferred_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.WMS,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Stock transferred: {event.payload.get('transfer_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
+
+
+@_register_handler(DomainEventType.INVENTORY_ADJUSTED)
+def _inventory_adjusted_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.WMS,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Inventory adjusted: {event.payload.get('adjustment_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
+
+
+@_register_handler(DomainEventType.PICK_COMPLETED)
+def _pick_completed_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.WMS,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Pick completed: {event.payload.get('pick_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
+
+
+@_register_handler(DomainEventType.CYCLE_COUNT_COMPLETED)
+def _cycle_count_completed_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.WMS,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Cycle count completed: {event.payload.get('count_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
+
+
+@_register_handler(DomainEventType.JOURNAL_POSTED)
+def _journal_posted_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.ACCOUNTING,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Journal posted: {event.payload.get('entry_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )

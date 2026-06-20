@@ -8,9 +8,15 @@ class RoleSlug(StrEnum):
     ADMIN = "admin"
     MANAGER = "manager"
     WAREHOUSE_MANAGER = "warehouse-manager"
+    WAREHOUSE_OPERATOR = "warehouse-operator"
     SALES_REP = "sales-representative"
     CUSTOMER_SERVICE = "customer-service"
     TRADE_REVIEWER = "trade-reviewer"
+    PROCUREMENT_OFFICER = "procurement-officer"
+    PROCUREMENT_MANAGER = "procurement-manager"
+    FINANCE_USER = "finance-user"
+    FINANCE_MANAGER = "finance-manager"
+    SUPPLIER_USER = "supplier-user"
     TRADE_CUSTOMER = "trade-customer"
     CUSTOMER = "customer"
     # Legacy — migrated to manager; kept for backward compatibility
@@ -43,6 +49,12 @@ SYSTEM_ROLES: tuple[dict[str, str | bool], ...] = (
         "is_system": True,
     },
     {
+        "name": "Warehouse Operator",
+        "slug": RoleSlug.WAREHOUSE_OPERATOR,
+        "description": "Floor operations — pick, putaway, and cycle counts.",
+        "is_system": True,
+    },
+    {
         "name": "Sales Representative",
         "slug": RoleSlug.SALES_REP,
         "description": "Sales pipeline, orders, and trade account visibility.",
@@ -58,6 +70,36 @@ SYSTEM_ROLES: tuple[dict[str, str | bool], ...] = (
         "name": "Trade Reviewer",
         "slug": RoleSlug.TRADE_REVIEWER,
         "description": "Review and approve/reject B2B trade account applications.",
+        "is_system": True,
+    },
+    {
+        "name": "Procurement Officer",
+        "slug": RoleSlug.PROCUREMENT_OFFICER,
+        "description": "Create and manage purchase requisitions and orders.",
+        "is_system": True,
+    },
+    {
+        "name": "Procurement Manager",
+        "slug": RoleSlug.PROCUREMENT_MANAGER,
+        "description": "Approve requisitions and oversee procurement spend.",
+        "is_system": True,
+    },
+    {
+        "name": "Finance User",
+        "slug": RoleSlug.FINANCE_USER,
+        "description": "View financial reports and create draft journal entries.",
+        "is_system": True,
+    },
+    {
+        "name": "Finance Manager",
+        "slug": RoleSlug.FINANCE_MANAGER,
+        "description": "Post journals, close periods, and oversee accounting.",
+        "is_system": True,
+    },
+    {
+        "name": "Supplier User",
+        "slug": RoleSlug.SUPPLIER_USER,
+        "description": "Supplier portal access for purchase orders and documents.",
         "is_system": True,
     },
     {
@@ -88,8 +130,11 @@ ADMIN_PORTAL_ROLES = frozenset({
     RoleSlug.ADMIN,
     RoleSlug.MANAGER,
     RoleSlug.WAREHOUSE_MANAGER,
+    RoleSlug.WAREHOUSE_OPERATOR,
     RoleSlug.SALES_REP,
     RoleSlug.CUSTOMER_SERVICE,
     RoleSlug.TRADE_REVIEWER,
+    RoleSlug.FINANCE_USER,
+    RoleSlug.FINANCE_MANAGER,
     RoleSlug.STAFF,
 })

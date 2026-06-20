@@ -201,7 +201,7 @@ class PurchaseOrderConfirmView(APIView):
         from apps.core.models import OperationalAuditLog
 
         po = PurchaseOrderService.get_by_public_id(po_id)
-        po = PurchaseOrderService.confirm(po=po)
+        po = PurchaseOrderService.confirm(po=po, user=request.user)
         log_operation(
             user=request.user,
             module=OperationalAuditLog.Module.SUPPLIERS,

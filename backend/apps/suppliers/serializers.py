@@ -160,6 +160,8 @@ class ReceivePurchaseOrderLineSerializer(serializers.Serializer):
     line_id = serializers.UUIDField(required=False)
     sku = serializers.CharField(max_length=50, required=False)
     quantity = serializers.IntegerField(min_value=1)
+    batch_number = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    received_at = serializers.DateTimeField(required=False)
 
     def validate(self, attrs):
         if not attrs.get("line_id") and not attrs.get("sku"):

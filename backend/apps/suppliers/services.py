@@ -11,7 +11,6 @@ from django.utils import timezone
 
 from apps.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
 from apps.core.resolvers import resolve_supplier, resolve_variant, resolve_warehouse
-from apps.inventory.services import InventoryService
 from apps.suppliers.models import PurchaseOrder, PurchaseOrderLine, Supplier
 
 
@@ -145,12 +144,51 @@ class PurchaseOrderService:
 
     @staticmethod
     @transaction.atomic
-    def confirm(*, po: PurchaseOrder) -> PurchaseOrder:
+    def approve(*, po: PurchaseOrder, user=None, comment: str = "") -> PurchaseOrder:
+        if po.status != PurchaseOrder.Status.SUBMITTED:
+            raise ConflictError("Only submitted purchase orders can be approved.")
+        from apps.erp.constants import DomainEventType, WorkflowCode
+        from apps.erp.services.events import DomainEventPublisher
+        from apps.erp.services.workflow import WorkflowEngine
+
+        instance = WorkflowEngine.get_for_resource(
+            resource_type="purchase_order", resource_id=str(po.public_id)
+        )
+        if instance:
+            WorkflowEngine.transition(
+                instance=instance, action="approve", actor=user, comment=comment
+            )
+        DomainEventPublisher.publish(
+            event_type=DomainEventType.PO_APPROVED,
+            aggregate_type="purchase_order",
+            aggregate_id=str(po.public_id),
+            payload={"po_number": po.po_number},
+            idempotency_key=f"po.approved:{po.public_id}",
+        )
+        return po
+
+    @staticmethod
+    @transaction.atomic
+    def confirm(*, po: PurchaseOrder, user=None) -> PurchaseOrder:
         if po.status not in (
             PurchaseOrder.Status.SUBMITTED,
             PurchaseOrder.Status.DRAFT,
         ):
             raise ConflictError("Purchase order cannot be confirmed in its current status.")
+        from apps.erp.constants import WorkflowCode
+        from apps.erp.services.workflow import WorkflowEngine
+
+        instance = WorkflowEngine.get_for_resource(
+            resource_type="purchase_order", resource_id=str(po.public_id)
+        )
+        if instance and instance.current_state == "approved":
+            WorkflowEngine.transition(instance=instance, action="confirm", actor=user)
+        elif instance and instance.current_state == "submitted":
+            try:
+                WorkflowEngine.transition(instance=instance, action="approve", actor=user)
+                WorkflowEngine.transition(instance=instance, action="confirm", actor=user)
+            except Exception:
+                pass
         po.status = PurchaseOrder.Status.CONFIRMED
         po.save(update_fields=["status", "updated_at"])
         return po
@@ -163,81 +201,27 @@ class PurchaseOrderService:
         receipts: list[dict],
         user=None,
     ) -> PurchaseOrder:
-        if po.status in (
-            PurchaseOrder.Status.RECEIVED,
-            PurchaseOrder.Status.CANCELLED,
-        ):
-            raise ConflictError("Purchase order cannot receive stock in its current status.")
+        from apps.procurement.services import GoodsReceiptService
 
-        lines_by_id = {line.public_id: line for line in po.lines.all()}
-        lines_by_sku = {line.variant.sku.lower(): line for line in po.lines.all()}
-
-        for receipt in receipts:
-            line = None
-            if receipt.get("line_id"):
-                line = lines_by_id.get(receipt["line_id"])
-            elif receipt.get("sku"):
-                line = lines_by_sku.get(receipt["sku"].lower())
-            if not line:
-                raise NotFoundError("Purchase order line not found.")
-
-            qty = receipt["quantity"]
-            if qty <= 0:
-                raise BusinessRuleError("Receive quantity must be positive.")
-
-            remaining = line.quantity_ordered - line.quantity_received
-            if qty > remaining:
-                raise ConflictError(
-                    f"Cannot receive {qty} units for {line.variant.sku}; "
-                    f"only {remaining} remaining."
-                )
-
-            InventoryService.stock_in(
-                sku=line.variant.sku,
-                warehouse_code=po.warehouse.code,
-                quantity=qty,
-                unit_cost_cents=line.unit_cost_cents,
-                supplier_id=po.supplier.public_id,
-                reference_type="purchase_order",
-                reference_id=po.id,
-                notes=f"PO receipt {po.po_number}",
-                user=user,
-            )
-
-            line.quantity_received += qty
-            line.save(update_fields=["quantity_received", "updated_at"])
-
-        all_received = all(
-            line.quantity_received >= line.quantity_ordered for line in po.lines.all()
-        )
-        any_received = any(line.quantity_received > 0 for line in po.lines.all())
-
-        if all_received:
-            po.status = PurchaseOrder.Status.RECEIVED
-        elif any_received:
-            po.status = PurchaseOrder.Status.PARTIAL_RECEIVED
-        po.save(update_fields=["status", "updated_at"])
-
-        from apps.erp.constants import DomainEventType
-        from apps.erp.services.events import DomainEventPublisher
-
-        DomainEventPublisher.publish(
-            event_type=DomainEventType.PO_RECEIVED,
-            aggregate_type="purchase_order",
-            aggregate_id=str(po.public_id),
-            payload={"po_number": po.po_number, "status": po.status},
-            idempotency_key=f"po.received:{po.public_id}:{po.status}",
-        )
-        DomainEventPublisher.publish(
-            event_type=DomainEventType.INVENTORY_RECEIVED,
-            aggregate_type="purchase_order",
-            aggregate_id=str(po.public_id),
-            payload={"po_number": po.po_number, "warehouse_code": po.warehouse.code},
-            idempotency_key=f"inventory.received:{po.public_id}",
-        )
+        po, _grn = GoodsReceiptService.receive_po(po=po, receipts=receipts, user=user)
         return po
+
+    @staticmethod
+    @transaction.atomic
+    def cancel(*, po: PurchaseOrder, user=None) -> PurchaseOrder:
         if po.status == PurchaseOrder.Status.RECEIVED:
             raise ConflictError("Received purchase orders cannot be cancelled.")
+        from apps.erp.constants import WorkflowCode
+        from apps.erp.services.workflow import WorkflowEngine
+
+        instance = WorkflowEngine.get_for_resource(
+            resource_type="purchase_order", resource_id=str(po.public_id)
+        )
+        if instance and instance.status == "active":
+            try:
+                WorkflowEngine.transition(instance=instance, action="cancel", actor=user)
+            except Exception:
+                pass
         po.status = PurchaseOrder.Status.CANCELLED
         po.save(update_fields=["status", "updated_at"])
         return po

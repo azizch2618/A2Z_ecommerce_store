@@ -11,10 +11,22 @@ class DocumentSequenceService:
     DEFAULT_PATTERNS: dict[str, dict] = {
         "SO": {"prefix": "SO-", "name": "Sales Order", "pattern": "{prefix}{year}-{seq}"},
         "PO": {"prefix": "PO-", "name": "Purchase Order", "pattern": "{prefix}{year}-{seq}"},
+        "PR": {"prefix": "PR-", "name": "Purchase Request", "pattern": "{prefix}{year}-{seq}"},
         "INV": {"prefix": "INV-", "name": "Invoice", "pattern": "{prefix}{year}-{seq}"},
         "QT": {"prefix": "QT-", "name": "Quote", "pattern": "{prefix}{year}-{seq}"},
         "GRN": {"prefix": "GRN-", "name": "Goods Receipt", "pattern": "{prefix}{year}-{seq}"},
+        "ST": {"prefix": "ST-", "name": "Stock Transfer", "pattern": "{prefix}{year}-{seq}"},
+        "PK": {"prefix": "PK-", "name": "Pick List", "pattern": "{prefix}{year}-{seq}"},
+        "PT": {"prefix": "PT-", "name": "Putaway Task", "pattern": "{prefix}{year}-{seq}"},
+        "CC": {"prefix": "CC-", "name": "Cycle Count", "pattern": "{prefix}{year}-{seq}"},
+        "ADJ": {"prefix": "ADJ-", "name": "Inventory Adjustment", "pattern": "{prefix}{year}-{seq}"},
         "TA": {"prefix": "TA-", "name": "Trade Account", "pattern": "{prefix}{seq}"},
+        "JE": {"prefix": "JE-", "name": "Journal Entry", "pattern": "{prefix}{year}-{seq}"},
+        "AP": {"prefix": "AP-", "name": "AP Invoice", "pattern": "{prefix}{year}-{seq}"},
+        "RP": {"prefix": "RP-", "name": "AR Payment", "pattern": "{prefix}{year}-{seq}"},
+        "PP": {"prefix": "PP-", "name": "AP Payment", "pattern": "{prefix}{year}-{seq}"},
+        "CN": {"prefix": "CN-", "name": "Credit Note", "pattern": "{prefix}{year}-{seq}"},
+        "DN": {"prefix": "DN-", "name": "Debit Note", "pattern": "{prefix}{year}-{seq}"},
     }
 
     @staticmethod

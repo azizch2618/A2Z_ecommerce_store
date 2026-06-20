@@ -11,6 +11,8 @@ import {
   LineChart,
   Package,
   Contact2,
+  ClipboardList,
+  Boxes,
   FileText,
   Settings,
   ShoppingCart,
@@ -42,6 +44,8 @@ const iconMap = {
   "line-chart": LineChart,
   "contact-2": Contact2,
   "file-text": FileText,
+  "clipboard-list": ClipboardList,
+  boxes: Boxes,
   settings: Settings,
 } as const;
 

@@ -164,6 +164,48 @@ export const API_ENDPOINTS = {
     customerReject: (id: string) => `/quotes/my/${id}/reject/`,
     customerPdf: (id: string) => `/quotes/my/${id}/pdf/`,
   },
+  procurement: {
+    dashboard: "/procurement/admin/dashboard/",
+    requests: "/procurement/admin/requests/",
+    request: (id: string) => `/procurement/admin/requests/${id}/`,
+    requestLines: (id: string) => `/procurement/admin/requests/${id}/lines/`,
+    requestSubmit: (id: string) => `/procurement/admin/requests/${id}/submit/`,
+    requestApprove: (id: string) => `/procurement/admin/requests/${id}/approve/`,
+    requestReject: (id: string) => `/procurement/admin/requests/${id}/reject/`,
+    requestConvert: (id: string) => `/procurement/admin/requests/${id}/convert/`,
+    goodsReceipts: "/procurement/admin/goods-receipts/",
+    supplierPerformance: (id: string) =>
+      `/procurement/admin/suppliers/${id}/performance/`,
+    poApprove: (id: string) => `/procurement/admin/purchase-orders/${id}/approve/`,
+    portalDashboard: "/procurement/portal/dashboard/",
+    portalPurchaseOrders: "/procurement/portal/purchase-orders/",
+    portalPurchaseOrder: (id: string) => `/procurement/portal/purchase-orders/${id}/`,
+    portalAcknowledge: (id: string) =>
+      `/procurement/portal/purchase-orders/${id}/acknowledge/`,
+    portalExpectedDelivery: (id: string) =>
+      `/procurement/portal/purchase-orders/${id}/expected-delivery/`,
+    portalPaymentStatus: (id: string) =>
+      `/procurement/portal/purchase-orders/${id}/payment-status/`,
+    portalDocuments: "/procurement/portal/documents/",
+    portalDocumentUpload: "/procurement/portal/documents/upload/",
+  },
+  wms: {
+    dashboard: "/wms/admin/dashboard/",
+    bins: "/wms/admin/bins/",
+    binInventory: "/wms/admin/bin-inventory/",
+    transfers: "/wms/admin/transfers/",
+    transfer: (id: string) => `/wms/admin/transfers/${id}/`,
+    picks: "/wms/admin/picks/",
+    pick: (id: string) => `/wms/admin/picks/${id}/`,
+    pickStart: (id: string) => `/wms/admin/picks/${id}/start/`,
+    pickRecord: (id: string) => `/wms/admin/picks/${id}/record/`,
+    pickComplete: (id: string) => `/wms/admin/picks/${id}/complete/`,
+    putaway: "/wms/admin/putaway/",
+    putawayDetail: (id: string) => `/wms/admin/putaway/${id}/`,
+    putawayAssign: (id: string) => `/wms/admin/putaway/${id}/assign-bin/`,
+    cycleCounts: "/wms/admin/cycle-counts/",
+    cycleCountRecord: (id: string) => `/wms/admin/cycle-counts/${id}/record/`,
+  },
 } as const;
 
 export const API_DEFAULTS = {

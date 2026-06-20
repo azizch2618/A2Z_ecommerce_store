@@ -29,6 +29,14 @@ export const Permission = {
   QUOTES_VIEW: "quotes.view",
   QUOTES_MANAGE: "quotes.manage",
   QUOTES_APPROVE: "quotes.approve",
+  PROCUREMENT_VIEW: "procurement.view",
+  PROCUREMENT_MANAGE: "procurement.manage",
+  PROCUREMENT_APPROVE: "procurement.approve",
+  SUPPLIER_PORTAL: "supplier.portal",
+  WMS_VIEW: "wms.view",
+  WMS_MANAGE: "wms.manage",
+  WMS_APPROVE: "wms.approve",
+  WMS_EXECUTE: "wms.execute",
 } as const;
 
 export type PermissionCodename = (typeof Permission)[keyof typeof Permission];
