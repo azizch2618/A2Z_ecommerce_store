@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "./tokens.css";
+@import "./typography.css";
+@import "./animations.css";
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground min-h-screen;
+  }
+
+  :focus-visible {
+    @apply outline-none shadow-focus-ring;
+  }
+
+  ::selection {
+    @apply bg-brand-blue/20 text-foreground;
+  }
+}
+
+@layer components {
+  .container-app {
+    @apply mx-auto w-full max-w-content px-4 md:px-6 lg:px-8;
+  }
+
+  .touch-target {
+    @apply min-h-11 min-w-11;
+  }
+}

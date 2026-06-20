@@ -1,0 +1,14 @@
+# A2Z Tools — Production Nginx Configuration (reference)
+#
+# Production Compose mounts:
+#   nginx.prod.conf              → /etc/nginx/nginx.conf
+#   conf.d/production.conf       → /etc/nginx/conf.d/production.conf
+#   proxy_params.conf            → /etc/nginx/proxy_params.conf
+#   ssl/a2ztools.com/*.pem       → /etc/nginx/ssl/a2ztools.com/
+#
+# Edit conf.d/production.conf for vhost changes.
+# Upstreams, rate limits, and healthcheck live in nginx.prod.conf.
+#
+# Validate syntax (outside Compose):
+#   ./infrastructure/scripts/validate-nginx.sh   # Linux / Git Bash
+#   ./infrastructure/scripts/validate-nginx.ps1  # Windows PowerShell

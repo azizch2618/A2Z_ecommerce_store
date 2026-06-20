@@ -1,0 +1,223 @@
+name: CI — Backend
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "backend/**"
+      - "scripts/run-tests.sh"
+      - ".github/workflows/ci-backend.yml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "backend/**"
+      - "scripts/run-tests.sh"
+
+concurrency:
+  group: ci-backend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+defaults:
+  run:
+    working-directory: backend
+
+env:
+  DJANGO_SETTINGS_MODULE: config.settings.test
+  TEST_DB: postgres
+  USE_SQLITE_FOR_TESTS: "0"
+  POSTGRES_HOST: localhost
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: a2z_tools_test
+  POSTGRES_TEST_DB: test_a2z_tools
+  POSTGRES_USER: a2z
+  POSTGRES_PASSWORD: changeme
+  POSTGRES_CONNECT_TIMEOUT: "10"
+  POSTGRES_WAIT_TIMEOUT: "60"
+  DJANGO_SECRET_KEY: test-secret-key-not-for-production-use-only
+  REDIS_URL: redis://localhost:6379/0
+
+jobs:
+  lint:
+    name: Lint & Django check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements/dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements/dev.txt
+
+      - name: Ruff
+        run: ruff check .
+
+      - name: Django check
+        run: python manage.py check
+
+  test:
+    name: Test suite (PostgreSQL)
+    runs-on: ubuntu-latest
+    needs: lint
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: a2z_tools_test
+          POSTGRES_USER: a2z
+          POSTGRES_PASSWORD: changeme
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U a2z -d a2z_tools_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements/dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements/dev.txt
+
+      - name: Wait for PostgreSQL
+        run: python scripts/wait_for_postgres.py
+
+      - name: Run test groups (smoke → security → regression → integration → coverage)
+        run: bash ../scripts/run-tests.sh ci
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: |
+            backend/reports/junit-*.xml
+            backend/reports/coverage.xml
+            backend/reports/htmlcov/
+          retention-days: 14
+
+      - name: Publish smoke test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Smoke Tests
+          path: backend/reports/junit-smoke.xml
+          reporter: java-junit
+          fail-on-error: true
+
+      - name: Publish security test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Security Tests
+          path: backend/reports/junit-security.xml
+          reporter: java-junit
+          fail-on-error: true
+
+      - name: Publish regression test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Regression Tests
+          path: backend/reports/junit-regression.xml
+          reporter: java-junit
+          fail-on-error: true
+
+      - name: Publish integration test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Integration Tests
+          path: backend/reports/junit-integration.xml
+          reporter: java-junit
+          fail-on-error: true
+
+      - name: Publish full suite results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Full Test Suite
+          path: backend/reports/junit-full.xml
+          reporter: java-junit
+          fail-on-error: true
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          path = Path("reports/coverage.xml")
+          if not path.exists():
+              print("No coverage.xml found")
+              raise SystemExit(0)
+
+          root = ET.parse(path).getroot()
+          line_rate = float(root.attrib.get("line-rate", 0)) * 100
+          branch_rate = float(root.attrib.get("branch-rate", 0)) * 100
+          summary = (
+              f"## Backend coverage\n\n"
+              f"| Metric | Coverage |\n"
+              f"|--------|----------|\n"
+              f"| Lines | {line_rate:.1f}% |\n"
+              f"| Branches | {branch_rate:.1f}% |\n"
+          )
+          Path("reports/coverage-summary.md").write_text(summary, encoding="utf-8")
+          print(summary)
+          PY
+
+      - name: Comment PR with coverage
+        if: github.event_name == 'pull_request' && always()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: backend-coverage
+          path: backend/reports/coverage-summary.md
+
+  sqlite-smoke:
+    name: SQLite smoke (fast gate)
+    runs-on: ubuntu-latest
+    needs: lint
+    env:
+      TEST_DB: sqlite
+      USE_SQLITE_FOR_TESTS: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements/dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements/dev.txt
+
+      - name: Smoke + security (SQLite)
+        run: |
+          mkdir -p reports
+          pytest -m "smoke or security" -q --junitxml=reports/junit-sqlite-smoke.xml
+
+      - name: Publish SQLite smoke results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: SQLite Smoke + Security
+          path: backend/reports/junit-sqlite-smoke.xml
+          reporter: java-junit
+          fail-on-error: true

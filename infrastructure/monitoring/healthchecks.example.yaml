@@ -1,0 +1,42 @@
+# External health check endpoints — configure in Cloudflare Health Checks,
+# Better Stack, or UptimeRobot (Sydney / Melbourne probe regions).
+
+checks:
+  - name: API liveness
+    url: https://api.a2ztools.com/api/v1/health/
+    interval_seconds: 60
+    timeout_seconds: 10
+    expected_status: 200
+
+  - name: API readiness
+    url: https://api.a2ztools.com/api/v1/ready/
+    interval_seconds: 60
+    timeout_seconds: 15
+    expected_status: 200
+
+  - name: Storefront
+    url: https://www.a2ztools.com/
+    interval_seconds: 60
+    timeout_seconds: 15
+    expected_status: 200
+
+  - name: Admin dashboard
+    url: https://dashboard.a2ztools.com/admin-dashboard
+    interval_seconds: 120
+    timeout_seconds: 15
+    expected_status: 200
+
+alerts:
+  - channel: slack
+    webhook_env: SLACK_ALERTS_WEBHOOK
+    on_failure_count: 3
+    severity: sev1
+
+  - channel: email
+    recipients_env: OPS_EMAIL
+    on_failure_count: 1
+    severity: sev2
+    events:
+      - backup_cron_failed
+      - disk_usage_above_85_percent
+      - certificate_expiry_below_14_days

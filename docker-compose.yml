@@ -1,0 +1,248 @@
+# A2Z Tools — Docker Compose (Development)
+#
+# Services: frontend, backend, postgres, redis, pgadmin
+#
+# Usage:
+#   cp .env.example .env
+#   docker compose up -d --build
+#
+# Production:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+name: a2z-tools
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: a2z-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-a2z_tools}
+      POSTGRES_USER: ${POSTGRES_USER:-a2z}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - a2z-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-a2z} -d ${POSTGRES_DB:-a2z_tools}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Redis
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: a2z-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_HOST_PORT:-6380}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - a2z-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # pgAdmin — database UI (development / ops)
+  # ---------------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: a2z-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@a2ztools.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-changeme}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_HOST_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - a2z-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/misc/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Django API
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: a2z-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-config.settings.dev}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
+      WAIT_FOR_POSTGRES: "true"
+      RUN_MIGRATIONS: "true"
+      COLLECT_STATIC: "false"
+    ports:
+      - "${BACKEND_HOST_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+      - backend_media:/app/media
+    networks:
+      - a2z-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/ready/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # Next.js storefront
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: a2z-frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      WATCHPACK_POLLING: ${WATCHPACK_POLLING:-true}
+    ports:
+      - "${FRONTEND_HOST_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+      - frontend_next_cache:/app/.next
+    networks:
+      - a2z-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  # ---------------------------------------------------------------------------
+  # Celery workers (optional — enable with: docker compose --profile workers up)
+  # ---------------------------------------------------------------------------
+  celery:
+    profiles: [workers]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: a2z-celery
+    restart: unless-stopped
+    command: celery -A config worker -l info
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-config.settings.dev}
+      WAIT_FOR_POSTGRES: "true"
+      RUN_MIGRATIONS: "false"
+    volumes:
+      - ./backend:/app
+    networks:
+      - a2z-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+
+  celery-beat:
+    profiles: [workers]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: a2z-celery-beat
+    restart: unless-stopped
+    command: celery -A config beat -l info
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-config.settings.dev}
+      WAIT_FOR_POSTGRES: "true"
+      RUN_MIGRATIONS: "false"
+    volumes:
+      - ./backend:/app
+    networks:
+      - a2z-network
+    depends_on:
+      celery:
+        condition: service_started
+
+networks:
+  a2z-network:
+    driver: bridge
+    name: a2z-network
+
+volumes:
+  postgres_data:
+    name: a2z-postgres-data
+  redis_data:
+    name: a2z-redis-data
+  pgadmin_data:
+    name: a2z-pgadmin-data
+  backend_media:
+    name: a2z-backend-media
+  backend_static:
+    name: a2z-backend-static
+  frontend_node_modules:
+    name: a2z-frontend-node-modules
+  frontend_next_cache:
+    name: a2z-frontend-next-cache

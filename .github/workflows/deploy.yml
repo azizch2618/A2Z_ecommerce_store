@@ -1,0 +1,172 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment target
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+      git_ref:
+        description: Git ref to deploy (branch, tag, or SHA)
+        required: false
+        default: main
+  push:
+    branches: [develop]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+
+concurrency:
+  group: deploy-${{ github.event.inputs.environment || 'staging' }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE_NAME: ${{ github.repository }}/backend
+  FRONTEND_IMAGE_NAME: ${{ github.repository }}/frontend
+
+jobs:
+  ci-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: CI gate placeholder
+        run: |
+          echo "Ensure ci-backend and ci-frontend passed on this ref before production deploy."
+          echo "Configure branch protection: require CI checks on main."
+
+  build-and-push:
+    needs: ci-gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.git_ref || github.ref }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        run: |
+          SHA="${{ github.event.inputs.git_ref || github.sha }}"
+          SHORT="$(echo "${SHA}" | cut -c1-7)"
+          echo "version=${SHORT}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve build URLs
+        id: urls
+        run: |
+          ENV="${{ github.event.inputs.environment || 'staging' }}"
+          if [ "$ENV" = "production" ]; then
+            echo "api_url=https://api.a2ztools.com/api/v1" >> "$GITHUB_OUTPUT"
+            echo "site_url=https://www.a2ztools.com" >> "$GITHUB_OUTPUT"
+            echo "admin_url=https://dashboard.a2ztools.com" >> "$GITHUB_OUTPUT"
+          else
+            echo "api_url=https://api.staging.a2ztools.com/api/v1" >> "$GITHUB_OUTPUT"
+            echo "site_url=https://staging.a2ztools.com" >> "$GITHUB_OUTPUT"
+            echo "admin_url=https://dashboard.staging.a2ztools.com" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          target: production
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:latest
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          target: production
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ steps.urls.outputs.api_url }}
+            NEXT_PUBLIC_SITE_URL=${{ steps.urls.outputs.site_url }}
+            NEXT_PUBLIC_ADMIN_URL=${{ steps.urls.outputs.admin_url }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:latest
+
+      - name: Scan backend image (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      - name: Scan frontend image (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch')
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd /opt/a2z-tools
+            export IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}
+            export BACKEND_IMAGE=${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:${{ needs.build-and-push.outputs.image_tag }}
+            export FRONTEND_IMAGE=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:${{ needs.build-and-push.outputs.image_tag }}
+            git fetch origin
+            git checkout ${{ github.event.inputs.git_ref || github.sha }}
+            echo "BACKEND_IMAGE=${BACKEND_IMAGE}" >> .env.deploy
+            echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}" >> .env.deploy
+            echo "IMAGE_TAG=${IMAGE_TAG}" >> .env.deploy
+            grep -v '^BACKEND_IMAGE=' .env | grep -v '^FRONTEND_IMAGE=' | grep -v '^IMAGE_TAG=' > .env.tmp || true
+            cat .env.tmp .env.deploy > .env
+            rm -f .env.tmp .env.deploy
+            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GHCR_DEPLOY_TOKEN }}
+            chmod +x infrastructure/scripts/deploy.sh
+            RUN_PRE_DEPLOY_BACKUP=${{ github.event.inputs.environment == 'production' && 'true' || 'false' }} \
+              ./infrastructure/scripts/deploy.sh ${{ github.event.inputs.git_ref || github.sha }}
+
+      - name: Smoke tests
+        run: |
+          ENV="${{ github.event.inputs.environment || 'staging' }}"
+          if [ "$ENV" = "production" ]; then
+            API="https://api.a2ztools.com"
+            WWW="https://www.a2ztools.com"
+            DASH="https://dashboard.a2ztools.com"
+          else
+            API="https://api.staging.a2ztools.com"
+            WWW="https://staging.a2ztools.com"
+            DASH="https://dashboard.staging.a2ztools.com"
+          fi
+          curl -fsS "${API}/api/v1/health/"
+          curl -fsS "${API}/api/v1/ready/"
+          curl -fsS -o /dev/null -w "%{http_code}" "${WWW}/" | grep -E '^(200|301|302)$'
+          curl -fsS -o /dev/null -w "%{http_code}" "${DASH}/admin-dashboard" | grep -E '^(200|301|302)$'

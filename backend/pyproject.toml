@@ -1,0 +1,60 @@
+name = "a2z-tools-backend"
+version = "0.1.0"
+description = "A2Z Tools — Django REST API"
+requires-python = ">=3.12"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["apps", "api", "config"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "api", "config"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+testpaths = ["apps"]
+addopts = [
+    "--strict-markers",
+    "--tb=short",
+    "-ra",
+]
+markers = [
+    "smoke: fast critical-path API tests",
+    "integration: cross-module workflow tests",
+    "regression: route and RBAC integrity checks",
+    "security: auth, RBAC boundary, and hardening tests",
+    "slow: performance or load-sensitive tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["apps", "api", "config"]
+branch = true
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/__init__.py",
+    "manage.py",
+    "scripts/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 0
+precision = 1
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]

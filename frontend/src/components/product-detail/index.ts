@@ -1,0 +1,11 @@
+export { ProductBrandInfo } from "./product-brand-info";
+export { ProductGstPricing } from "./product-gst-pricing";
+export { ProductDescription } from "./product-description";
+export { ProductDetailView } from "./product-detail-view";
+export { ProductGallery } from "./product-gallery";
+export { ProductPurchasePanel } from "./product-purchase-panel";
+export { ProductSpecifications } from "./product-specifications";
+export { ProductDownloads } from "./product-downloads";
+export { ProductReviews } from "./product-reviews";
+export { ProductRelated } from "./product-related";
+export { QuantitySelector } from "./quantity-selector";

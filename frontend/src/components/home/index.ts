@@ -1,0 +1,11 @@
+export { CategoriesSection } from "./categories-section";
+export { FeaturedBrandsSection } from "./featured-brands-section";
+export { FeaturedProductsSection } from "./featured-products-section";
+export { HeroSection } from "./hero-section";
+export { NewsletterSection } from "./newsletter-section";
+export { PlaceholderImage } from "./placeholder-image";
+export { ProductCardWireframe } from "./product-card-wireframe";
+export { SectionHeader } from "./section-header";
+export { TestimonialsSection } from "./testimonials-section";
+export { TradeCtaSection } from "./trade-cta-section";
+export { WhyChooseUsSection } from "./why-choose-us-section";

@@ -1,0 +1,61 @@
+/**
+ * A2Z Tools — Motion utilities
+ */
+
+.transition-fast {
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-out);
+}
+
+.transition-normal {
+  transition-duration: var(--duration-normal);
+  transition-timing-function: var(--ease-out);
+}
+
+.transition-moderate {
+  transition-duration: var(--duration-moderate);
+  transition-timing-function: var(--ease-in-out);
+}
+
+.shadow-focus-ring {
+  box-shadow: var(--shadow-focus);
+}
+
+.animate-fade-in {
+  animation: fade-in var(--duration-moderate) var(--ease-out);
+}
+
+.animate-slide-up {
+  animation: slide-up var(--duration-moderate) var(--ease-out);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: var(--duration-instant) !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--duration-instant) !important;
+    scroll-behavior: auto !important;
+  }
+}

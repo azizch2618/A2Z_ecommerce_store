@@ -1,0 +1,53 @@
+/**
+ * A2Z Tools — Typography utilities
+ */
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  @apply font-sans text-base text-foreground leading-6;
+}
+
+h1,
+.text-h1 {
+  @apply text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl;
+}
+
+h2,
+.text-h2 {
+  @apply text-2xl font-semibold tracking-tight text-foreground lg:text-3xl;
+}
+
+h3,
+.text-h3 {
+  @apply text-xl font-semibold tracking-tight text-foreground;
+}
+
+h4,
+.text-h4 {
+  @apply text-lg font-semibold text-foreground;
+}
+
+.text-lead {
+  @apply text-lg text-muted-foreground;
+}
+
+.text-meta {
+  @apply text-sm text-muted-foreground;
+}
+
+.text-caption {
+  @apply text-xs text-muted-foreground;
+}
+
+.text-mono {
+  @apply font-mono text-sm;
+}
+
+.text-section-heading {
+  @apply text-2xl font-semibold text-foreground mb-6;
+}

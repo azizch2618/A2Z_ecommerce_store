@@ -1,0 +1,145 @@
+"""Enterprise RBAC — permission catalog and role matrix."""
+
+from __future__ import annotations
+
+from apps.accounts.constants import RoleSlug
+
+
+class PermissionCodename:
+    """Canonical permission identifiers — keep in sync with frontend `lib/rbac`."""
+
+    DASHBOARD_VIEW = "dashboard.view"
+    ANALYTICS_VIEW = "analytics.view"
+    REPORTS_VIEW = "reports.view"
+    REPORTS_EXPORT = "reports.export"
+    CATALOG_VIEW = "catalog.view"
+    CATALOG_MANAGE = "catalog.manage"
+    INVENTORY_VIEW = "inventory.view"
+    INVENTORY_MANAGE = "inventory.manage"
+    WAREHOUSE_VIEW = "warehouse.view"
+    WAREHOUSE_MANAGE = "warehouse.manage"
+    ORDERS_VIEW = "orders.view"
+    ORDERS_MANAGE = "orders.manage"
+    CUSTOMERS_VIEW = "customers.view"
+    CUSTOMERS_MANAGE = "customers.manage"
+    TRADE_VIEW = "trade.view"
+    TRADE_APPROVE = "trade.approve"
+    SUPPLIERS_VIEW = "suppliers.view"
+    SUPPLIERS_MANAGE = "suppliers.manage"
+    SETTINGS_VIEW = "settings.view"
+    SETTINGS_MANAGE = "settings.manage"
+    USERS_MANAGE = "users.manage"
+    STORE_CHECKOUT = "store.checkout"
+    STORE_TRADE_PRICING = "store.trade_pricing"
+
+
+SYSTEM_PERMISSIONS: tuple[dict[str, str], ...] = (
+    {"codename": PermissionCodename.DASHBOARD_VIEW, "module": "dashboard", "description": "View admin dashboard"},
+    {"codename": PermissionCodename.ANALYTICS_VIEW, "module": "analytics", "description": "View analytics"},
+    {"codename": PermissionCodename.REPORTS_VIEW, "module": "reports", "description": "View reports"},
+    {"codename": PermissionCodename.REPORTS_EXPORT, "module": "reports", "description": "Export reports"},
+    {"codename": PermissionCodename.CATALOG_VIEW, "module": "catalog", "description": "View products, categories, brands"},
+    {"codename": PermissionCodename.CATALOG_MANAGE, "module": "catalog", "description": "Create and edit catalog"},
+    {"codename": PermissionCodename.INVENTORY_VIEW, "module": "inventory", "description": "View stock levels"},
+    {"codename": PermissionCodename.INVENTORY_MANAGE, "module": "inventory", "description": "Stock in/out/transfer"},
+    {"codename": PermissionCodename.WAREHOUSE_VIEW, "module": "warehouse", "description": "View warehouses"},
+    {"codename": PermissionCodename.WAREHOUSE_MANAGE, "module": "warehouse", "description": "Manage warehouses"},
+    {"codename": PermissionCodename.ORDERS_VIEW, "module": "orders", "description": "View orders"},
+    {"codename": PermissionCodename.ORDERS_MANAGE, "module": "orders", "description": "Update order status"},
+    {"codename": PermissionCodename.CUSTOMERS_VIEW, "module": "customers", "description": "View customers"},
+    {"codename": PermissionCodename.CUSTOMERS_MANAGE, "module": "customers", "description": "Edit customer accounts"},
+    {"codename": PermissionCodename.TRADE_VIEW, "module": "trade", "description": "View trade applications"},
+    {"codename": PermissionCodename.TRADE_APPROVE, "module": "trade", "description": "Approve/reject trade accounts"},
+    {"codename": PermissionCodename.SUPPLIERS_VIEW, "module": "suppliers", "description": "View suppliers"},
+    {"codename": PermissionCodename.SUPPLIERS_MANAGE, "module": "suppliers", "description": "Manage suppliers"},
+    {"codename": PermissionCodename.SETTINGS_VIEW, "module": "settings", "description": "View system settings"},
+    {"codename": PermissionCodename.SETTINGS_MANAGE, "module": "settings", "description": "Edit system settings"},
+    {"codename": PermissionCodename.USERS_MANAGE, "module": "users", "description": "Manage users and roles"},
+    {"codename": PermissionCodename.STORE_CHECKOUT, "module": "store", "description": "Place orders on storefront"},
+    {"codename": PermissionCodename.STORE_TRADE_PRICING, "module": "store", "description": "View trade pricing"},
+)
+
+_ALL_PERMISSIONS = frozenset(p["codename"] for p in SYSTEM_PERMISSIONS)
+
+INTERNAL_ROLES = frozenset({
+    RoleSlug.SUPER_ADMIN,
+    RoleSlug.ADMIN,
+    RoleSlug.MANAGER,
+    RoleSlug.WAREHOUSE_MANAGER,
+    RoleSlug.SALES_REP,
+    RoleSlug.CUSTOMER_SERVICE,
+    RoleSlug.TRADE_REVIEWER,
+    RoleSlug.STAFF,
+})
+
+CUSTOMER_ROLES = frozenset({
+    RoleSlug.CUSTOMER,
+    RoleSlug.TRADE_CUSTOMER,
+})
+
+_MANAGER_PERMS = frozenset({
+    PermissionCodename.DASHBOARD_VIEW,
+    PermissionCodename.ANALYTICS_VIEW,
+    PermissionCodename.REPORTS_VIEW,
+    PermissionCodename.REPORTS_EXPORT,
+    PermissionCodename.CATALOG_VIEW,
+    PermissionCodename.CATALOG_MANAGE,
+    PermissionCodename.INVENTORY_VIEW,
+    PermissionCodename.ORDERS_VIEW,
+    PermissionCodename.ORDERS_MANAGE,
+    PermissionCodename.CUSTOMERS_VIEW,
+    PermissionCodename.CUSTOMERS_MANAGE,
+    PermissionCodename.TRADE_VIEW,
+    PermissionCodename.SUPPLIERS_VIEW,
+    PermissionCodename.SUPPLIERS_MANAGE,
+    PermissionCodename.SETTINGS_VIEW,
+})
+
+ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
+    RoleSlug.SUPER_ADMIN: _ALL_PERMISSIONS,
+    RoleSlug.ADMIN: _ALL_PERMISSIONS - frozenset({PermissionCodename.USERS_MANAGE}),
+    RoleSlug.MANAGER: _MANAGER_PERMS,
+    RoleSlug.STAFF: _MANAGER_PERMS,
+    RoleSlug.WAREHOUSE_MANAGER: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.INVENTORY_VIEW,
+        PermissionCodename.INVENTORY_MANAGE,
+        PermissionCodename.WAREHOUSE_VIEW,
+        PermissionCodename.WAREHOUSE_MANAGE,
+        PermissionCodename.ORDERS_VIEW,
+        PermissionCodename.SUPPLIERS_VIEW,
+        PermissionCodename.CATALOG_VIEW,
+    }),
+    RoleSlug.SALES_REP: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.ANALYTICS_VIEW,
+        PermissionCodename.CATALOG_VIEW,
+        PermissionCodename.ORDERS_VIEW,
+        PermissionCodename.ORDERS_MANAGE,
+        PermissionCodename.CUSTOMERS_VIEW,
+        PermissionCodename.TRADE_VIEW,
+        PermissionCodename.REPORTS_VIEW,
+    }),
+    RoleSlug.CUSTOMER_SERVICE: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.ORDERS_VIEW,
+        PermissionCodename.ORDERS_MANAGE,
+        PermissionCodename.CUSTOMERS_VIEW,
+        PermissionCodename.CUSTOMERS_MANAGE,
+        PermissionCodename.TRADE_VIEW,
+        PermissionCodename.CATALOG_VIEW,
+    }),
+    RoleSlug.TRADE_REVIEWER: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.TRADE_VIEW,
+        PermissionCodename.TRADE_APPROVE,
+        PermissionCodename.CUSTOMERS_VIEW,
+    }),
+    RoleSlug.TRADE_CUSTOMER: frozenset({
+        PermissionCodename.STORE_CHECKOUT,
+        PermissionCodename.STORE_TRADE_PRICING,
+    }),
+    RoleSlug.CUSTOMER: frozenset({
+        PermissionCodename.STORE_CHECKOUT,
+    }),
+}

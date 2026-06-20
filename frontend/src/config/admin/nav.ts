@@ -1,0 +1,50 @@
+import type { PermissionCodename } from "@/lib/rbac/permissions";
+import { Permission } from "@/lib/rbac/permissions";
+
+export type AdminNavIcon =
+  | "layout-dashboard"
+  | "package"
+  | "folder-tree"
+  | "tag"
+  | "warehouse"
+  | "building-2"
+  | "shopping-cart"
+  | "users"
+  | "handshake"
+  | "truck"
+  | "bar-chart-3"
+  | "line-chart"
+  | "settings";
+
+export interface AdminNavItem {
+  label: string;
+  href: string;
+  icon: AdminNavIcon;
+  badge?: number;
+  section?: string;
+  /** RBAC permission required to see this nav item */
+  permission: PermissionCodename;
+}
+
+export const adminNavItems: AdminNavItem[] = [
+  { label: "Dashboard", href: "/admin-dashboard", icon: "layout-dashboard", permission: Permission.DASHBOARD_VIEW },
+  { label: "Products", href: "/admin-dashboard/products", icon: "package", section: "Catalog", permission: Permission.CATALOG_VIEW },
+  { label: "Categories", href: "/admin-dashboard/categories", icon: "folder-tree", section: "Catalog", permission: Permission.CATALOG_VIEW },
+  { label: "Brands", href: "/admin-dashboard/brands", icon: "tag", section: "Catalog", permission: Permission.CATALOG_VIEW },
+  { label: "Inventory", href: "/admin-dashboard/inventory", icon: "warehouse", section: "Operations", permission: Permission.INVENTORY_VIEW },
+  { label: "Warehouses", href: "/admin-dashboard/warehouses", icon: "building-2", section: "Operations", permission: Permission.WAREHOUSE_VIEW },
+  { label: "Orders", href: "/admin-dashboard/orders", icon: "shopping-cart", section: "Sales", badge: 12, permission: Permission.ORDERS_VIEW },
+  { label: "Customers", href: "/admin-dashboard/customers", icon: "users", section: "Sales", permission: Permission.CUSTOMERS_VIEW },
+  { label: "Trade Accounts", href: "/admin-dashboard/trade-accounts", icon: "handshake", section: "Sales", badge: 5, permission: Permission.TRADE_VIEW },
+  { label: "Suppliers", href: "/admin-dashboard/suppliers", icon: "truck", section: "Procurement", permission: Permission.SUPPLIERS_VIEW },
+  { label: "Reports", href: "/admin-dashboard/reports", icon: "bar-chart-3", section: "Insights", permission: Permission.REPORTS_VIEW },
+  { label: "Analytics", href: "/admin-dashboard/analytics", icon: "line-chart", section: "Insights", permission: Permission.ANALYTICS_VIEW },
+  { label: "Settings", href: "/admin-dashboard/settings", icon: "settings", section: "System", permission: Permission.SETTINGS_VIEW },
+];
+
+export const adminUser = {
+  name: "Sarah Mitchell",
+  role: "Operations Manager",
+  email: "sarah.mitchell@a2ztools.com.au",
+  initials: "SM",
+};

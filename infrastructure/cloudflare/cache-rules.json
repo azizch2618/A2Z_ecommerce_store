@@ -1,0 +1,26 @@
+[
+  {
+    "description": "Cache Next.js static assets on storefront",
+    "expression": "(http.host eq \"www.a2ztools.com\" and starts_with(http.request.uri.path, \"/_next/static/\"))",
+    "action": "cache",
+    "action_parameters": {
+      "cache": true,
+      "edge_ttl": { "mode": "override_origin", "default": 31536000 }
+    }
+  },
+  {
+    "description": "Bypass cache for dynamic storefront routes",
+    "expression": "(http.host eq \"www.a2ztools.com\" and (starts_with(http.request.uri.path, \"/checkout\") or starts_with(http.request.uri.path, \"/cart\") or starts_with(http.request.uri.path, \"/account\")))",
+    "action": "bypass_cache"
+  },
+  {
+    "description": "Never cache admin dashboard",
+    "expression": "(http.host eq \"dashboard.a2ztools.com\")",
+    "action": "bypass_cache"
+  },
+  {
+    "description": "Never cache API",
+    "expression": "(http.host eq \"api.a2ztools.com\")",
+    "action": "bypass_cache"
+  }
+]
