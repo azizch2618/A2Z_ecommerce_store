@@ -28,6 +28,9 @@ export interface AccountTradePanelProps {
   tradeStatus: "approved" | "pending" | "suspended" | "rejected";
   creditLimit: number;
   paymentTermsDays: number | null;
+  onAcceptQuote?: (quoteId: string) => void;
+  onRejectQuote?: (quoteId: string) => void;
+  quoteActionPendingId?: string | null;
 }
 
 function AccountTradePanel({
@@ -37,6 +40,9 @@ function AccountTradePanel({
   tradeStatus,
   creditLimit,
   paymentTermsDays,
+  onAcceptQuote,
+  onRejectQuote,
+  quoteActionPendingId,
 }: AccountTradePanelProps) {
   const isApproved = tradeStatus === "approved";
 
@@ -131,16 +137,35 @@ function AccountTradePanel({
                   }).format(new Date(quote.expiresAt))}
                 </p>
               </div>
-              <div className="flex items-center gap-3 sm:flex-col sm:items-end">
+              <div className="flex flex-col items-stretch gap-2 sm:items-end">
                 <Badge
                   variant="outline"
-                  className={cn("border-0 capitalize", quoteStatusStyles[quote.status])}
+                  className={cn("border-0 capitalize", quoteStatusStyles[quote.status as keyof typeof quoteStatusStyles] ?? quoteStatusStyles.draft)}
                 >
-                  {quote.status}
+                  {quote.status.replace(/_/g, " ")}
                 </Badge>
                 <p className="font-semibold tabular-nums text-foreground">
                   {formatAud(quote.totalIncGst)}
                 </p>
+                {quote.status === "sent" && onAcceptQuote && onRejectQuote ? (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={quoteActionPendingId === quote.id}
+                      onClick={() => onRejectQuote(quote.id)}
+                    >
+                      Decline
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={quoteActionPendingId === quote.id}
+                      onClick={() => onAcceptQuote(quote.id)}
+                    >
+                      Accept
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             </li>
           ))}

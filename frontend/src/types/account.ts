@@ -32,6 +32,6 @@ export interface SavedQuote {
   title: string;
   date: string;
   totalIncGst: number;
-  status: "draft" | "sent" | "accepted" | "expired";
+  status: "draft" | "sent" | "accepted" | "expired" | "pending_approval" | "rejected" | "converted";
   expiresAt: string;
 }

@@ -198,6 +198,79 @@ class Command(BaseCommand):
             },
         )
 
+        WorkflowDefinition.objects.update_or_create(
+            code=WorkflowCode.CRM_OPPORTUNITY,
+            defaults={
+                "name": "CRM Opportunity Pipeline",
+                "document_type": "crm_opportunity",
+                "initial_state": "qualified",
+                "states": ["qualified", "proposal_sent", "won", "lost"],
+                "transitions": [
+                    {
+                        "from": "qualified",
+                        "to": "proposal_sent",
+                        "action": "send_proposal",
+                        "label": "Send Proposal",
+                        "required_roles": ["sales-representative", "manager", "admin", "super-admin"],
+                    },
+                    {
+                        "from": "proposal_sent",
+                        "to": "won",
+                        "action": "win",
+                        "label": "Mark Won",
+                        "required_roles": ["sales-representative", "manager", "admin", "super-admin"],
+                        "terminal_states": ["won"],
+                    },
+                    {
+                        "from": "proposal_sent",
+                        "to": "lost",
+                        "action": "lose",
+                        "label": "Mark Lost",
+                        "required_roles": ["sales-representative", "manager", "admin", "super-admin"],
+                        "terminal_states": ["lost"],
+                    },
+                    {
+                        "from": "qualified",
+                        "to": "lost",
+                        "action": "lose",
+                        "label": "Mark Lost",
+                        "required_roles": ["sales-representative", "manager", "admin", "super-admin"],
+                        "terminal_states": ["lost"],
+                    },
+                ],
+                "is_active": True,
+            },
+        )
+
+        WorkflowDefinition.objects.update_or_create(
+            code=WorkflowCode.QUOTE_APPROVAL,
+            defaults={
+                "name": "Quote Approval",
+                "document_type": "quote",
+                "initial_state": "pending_approval",
+                "states": ["pending_approval", "approved", "rejected"],
+                "transitions": [
+                    {
+                        "from": "pending_approval",
+                        "to": "approved",
+                        "action": "approve",
+                        "label": "Approve Quote",
+                        "required_roles": ["manager", "admin", "super-admin"],
+                        "terminal_states": ["approved"],
+                    },
+                    {
+                        "from": "pending_approval",
+                        "to": "rejected",
+                        "action": "reject",
+                        "label": "Reject Quote",
+                        "required_roles": ["manager", "admin", "super-admin"],
+                        "terminal_states": ["rejected"],
+                    },
+                ],
+                "is_active": True,
+            },
+        )
+
         NotificationTemplate.objects.update_or_create(
             code="trade_approved",
             defaults={
@@ -215,6 +288,27 @@ class Command(BaseCommand):
                 "channel": NotificationChannel.IN_APP,
                 "subject_template": "PO {po_number} submitted",
                 "body_template": "Purchase order {po_number} has been submitted for approval.",
+                "is_active": True,
+            },
+        )
+
+        NotificationTemplate.objects.update_or_create(
+            code="crm_lead_assigned",
+            defaults={
+                "name": "CRM Lead Assigned",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "Lead assigned: {lead_title}",
+                "body_template": "You have been assigned lead {lead_title}.",
+                "is_active": True,
+            },
+        )
+        NotificationTemplate.objects.update_or_create(
+            code="crm_opportunity_won",
+            defaults={
+                "name": "CRM Opportunity Won",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "Opportunity won: {opportunity_name}",
+                "body_template": "Opportunity {opportunity_name} has been marked as won.",
                 "is_active": True,
             },
         )

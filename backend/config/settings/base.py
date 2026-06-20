@@ -57,6 +57,8 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "apps.core",
     "apps.erp",
+    "apps.crm",
+    "apps.quotes",
     "apps.accounts",
     "apps.customers",
     "apps.trade_accounts",
@@ -239,6 +241,8 @@ SPECTACULAR_SETTINGS = {
 A2Z_CURRENCY_CODE = "AUD"
 A2Z_GST_RATE = "0.1000"
 A2Z_DEFAULT_COUNTRY = "AU"
+# Quotes above this total (inc GST, cents) require manager approval before sending
+QUOTE_APPROVAL_THRESHOLD_CENTS = int(os.environ.get("QUOTE_APPROVAL_THRESHOLD_CENTS", "500000"))
 DEMO_AUTO_COMPLETE_PAYMENTS = False
 
 # Stripe (Payment Intents + webhooks)

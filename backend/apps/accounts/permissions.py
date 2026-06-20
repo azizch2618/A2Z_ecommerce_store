@@ -176,3 +176,11 @@ class CanExportReports(HasPermission):
 
 class CanCheckout(HasPermission):
     required_permissions = (PermissionCodename.STORE_CHECKOUT,)
+
+
+class CanViewCrm(HasPermission):
+    required_permissions = (PermissionCodename.CRM_VIEW,)
+
+
+class CanManageCrm(HasPermission):
+    required_permissions = (PermissionCodename.CRM_MANAGE,)

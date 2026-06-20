@@ -4,9 +4,13 @@ export type TradeTier = "bronze" | "silver" | "gold" | "platinum";
 
 export type QuoteStatus =
   | "draft"
+  | "pending_approval"
+  | "approved"
+  | "rejected"
   | "sent"
   | "accepted"
   | "expired"
+  | "converted"
   | "declined";
 
 export interface TradeAccount {

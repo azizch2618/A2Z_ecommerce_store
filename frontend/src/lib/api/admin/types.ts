@@ -307,3 +307,167 @@ export interface AdminDashboardData {
   suppliers: AdminSupplier[];
   notifications: AdminNotification[];
 }
+
+export type CrmLeadStatus =
+  | "new"
+  | "contacted"
+  | "qualified"
+  | "proposal_sent"
+  | "won"
+  | "lost";
+
+export type CrmActivityType = "call" | "meeting" | "email" | "follow_up" | "note";
+
+export interface CrmUserRef {
+  id: string;
+  email: string;
+  name: string;
+}
+
+export interface CrmLead {
+  id: string;
+  title: string;
+  companyName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  source: string;
+  status: CrmLeadStatus;
+  assignedTo: CrmUserRef | null;
+  partyId: string | null;
+  customerId: string | null;
+  notesSummary: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CrmOpportunity {
+  id: string;
+  name: string;
+  status: "open" | "won" | "lost";
+  stage: CrmLeadStatus;
+  expectedRevenueCents: number;
+  probability: number;
+  weightedRevenueCents: number;
+  expectedCloseDate: string | null;
+  assignedTo: CrmUserRef | null;
+  partyId: string;
+  partyName: string;
+  leadId: string | null;
+  customerId: string | null;
+  tradeAccountId: string | null;
+  wonAt: string | null;
+  lostAt: string | null;
+  lostReason: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CrmTimelineEntry {
+  id: string;
+  entryType: "activity" | "note" | "status_change";
+  activityType?: CrmActivityType;
+  title: string;
+  body: string;
+  occurredAt: string;
+  actorEmail: string | null;
+}
+
+export interface CrmDashboardKpis {
+  totalLeads: number;
+  openOpportunities: number;
+  conversionRate: number;
+  revenueForecastCents: number;
+  leadsByStatus: Record<string, number>;
+  wonOpportunities: number;
+  lostOpportunities: number;
+  charts?: CrmDashboardCharts;
+}
+
+export interface CrmPipelineStageValue {
+  stage: string;
+  label: string;
+  valueCents: number;
+  count: number;
+}
+
+export interface CrmForecastStageValue {
+  stage: string;
+  label: string;
+  weightedCents: number;
+}
+
+export interface CrmDashboardCharts {
+  pipelineValue: CrmPipelineStageValue[];
+  forecastRevenue: CrmForecastStageValue[];
+  winRate: number;
+  conversionRate: number;
+}
+
+export interface CrmPartyRef {
+  id: string;
+  displayName: string;
+  legalName: string;
+  email: string;
+  phone: string;
+  partyType: string;
+}
+
+export interface CrmCustomerRef {
+  id: string;
+  email: string;
+  organizationName: string | null;
+  customerType: string;
+}
+
+export interface CrmTradeAccountRef {
+  id: string;
+  accountNumber: string;
+  status: string;
+  organizationName: string;
+  tier: string;
+}
+
+export interface CrmQuoteDraft {
+  id: string;
+  quoteNumber: string;
+  status: string;
+  totalIncGstCents: number;
+  validUntil: string;
+  createdAt: string;
+}
+
+export interface CrmActivity {
+  id: string;
+  activityType: CrmActivityType;
+  subject: string;
+  description: string;
+  scheduledAt: string | null;
+  completedAt: string | null;
+  assignedTo: CrmUserRef | null;
+  createdAt: string;
+}
+
+export interface CrmNote {
+  id: string;
+  body: string;
+  createdBy: CrmUserRef | null;
+  createdAt: string;
+}
+
+export interface CrmLeadDetail extends CrmLead {
+  party: CrmPartyRef | null;
+  customer: CrmCustomerRef | null;
+  opportunities: CrmOpportunity[];
+  activities: CrmActivity[];
+  notes: CrmNote[];
+}
+
+export interface CrmOpportunityDetail extends CrmOpportunity {
+  party: CrmPartyRef;
+  customer: CrmCustomerRef | null;
+  tradeAccount: CrmTradeAccountRef | null;
+  quoteDraft: CrmQuoteDraft | null;
+}
+
+export type CrmPipelineColumns = Record<CrmLeadStatus, CrmLead[]>;

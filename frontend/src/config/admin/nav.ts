@@ -14,6 +14,8 @@ export type AdminNavIcon =
   | "truck"
   | "bar-chart-3"
   | "line-chart"
+  | "contact-2"
+  | "file-text"
   | "settings";
 
 export interface AdminNavItem {
@@ -36,6 +38,8 @@ export const adminNavItems: AdminNavItem[] = [
   { label: "Orders", href: "/admin-dashboard/orders", icon: "shopping-cart", section: "Sales", badge: 12, permission: Permission.ORDERS_VIEW },
   { label: "Customers", href: "/admin-dashboard/customers", icon: "users", section: "Sales", permission: Permission.CUSTOMERS_VIEW },
   { label: "Trade Accounts", href: "/admin-dashboard/trade-accounts", icon: "handshake", section: "Sales", badge: 5, permission: Permission.TRADE_VIEW },
+  { label: "CRM", href: "/admin-dashboard/crm", icon: "contact-2", section: "Sales", permission: Permission.CRM_VIEW },
+  { label: "Quotes", href: "/admin-dashboard/quotes", icon: "file-text", section: "Sales", permission: Permission.QUOTES_VIEW },
   { label: "Suppliers", href: "/admin-dashboard/suppliers", icon: "truck", section: "Procurement", permission: Permission.SUPPLIERS_VIEW },
   { label: "Reports", href: "/admin-dashboard/reports", icon: "bar-chart-3", section: "Insights", permission: Permission.REPORTS_VIEW },
   { label: "Analytics", href: "/admin-dashboard/analytics", icon: "line-chart", section: "Insights", permission: Permission.ANALYTICS_VIEW },

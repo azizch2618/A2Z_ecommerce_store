@@ -95,17 +95,76 @@ class TradeApplication(PublicIdModel):
 class Quote(PublicIdModel):
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
+        PENDING_APPROVAL = "pending_approval", "Pending Approval"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
         SENT = "sent", "Sent"
         ACCEPTED = "accepted", "Accepted"
         EXPIRED = "expired", "Expired"
+        CONVERTED = "converted", "Converted"
+        # Legacy alias kept for migration compatibility
         DECLINED = "declined", "Declined"
 
-    trade_account = models.ForeignKey(TradeAccount, on_delete=models.CASCADE, related_name="quotes")
+    trade_account = models.ForeignKey(
+        TradeAccount,
+        on_delete=models.CASCADE,
+        related_name="quotes",
+        null=True,
+        blank=True,
+    )
+    crm_opportunity = models.OneToOneField(
+        "crm.CrmOpportunity",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="quote_draft",
+    )
+    party = models.ForeignKey(
+        "erp.Party",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="quotes",
+    )
+    customer = models.ForeignKey(
+        "customers.Customer",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="quotes",
+    )
+    created_by = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="quotes_created",
+    )
     quote_number = models.CharField(max_length=20, unique=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    status = models.CharField(max_length=30, choices=Status.choices, default=Status.DRAFT, db_index=True)
     valid_until = models.DateTimeField()
+    subtotal_ex_gst_cents = models.BigIntegerField(default=0)
+    gst_total_cents = models.BigIntegerField(default=0)
+    discount_cents = models.BigIntegerField(default=0)
     total_inc_gst_cents = models.BigIntegerField(default=0)
     currency_code = models.CharField(max_length=3, default="AUD")
+    notes = models.TextField(blank=True)
+    terms_and_conditions = models.TextField(blank=True)
+    converted_order = models.OneToOneField(
+        "orders.Order",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="source_quote",
+    )
+    sent_at = models.DateTimeField(null=True, blank=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    rejected_at = models.DateTimeField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        db_table = "trade_accounts_quote"
+        ordering = ["-created_at"]
 
 
 class QuoteLine(PublicIdModel):
@@ -115,7 +174,11 @@ class QuoteLine(PublicIdModel):
     product_name = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField()
     unit_price_ex_gst_cents = models.BigIntegerField()
+    discount_cents = models.BigIntegerField(default=0)
+    line_gst_cents = models.BigIntegerField(default=0)
+    line_subtotal_ex_gst_cents = models.BigIntegerField(default=0)
     line_total_inc_gst_cents = models.BigIntegerField()
+    gst_rate = models.DecimalField(max_digits=5, decimal_places=4, default="0.1000")
 
     class Meta:
         db_table = "quote_lines"

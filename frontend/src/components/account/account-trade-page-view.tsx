@@ -2,10 +2,13 @@
 
 import * as React from "react";
 import { Loader2 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { SavedQuote } from "@/types/account";
 import { getAccountBreadcrumbs } from "@/config/account";
 import { useTradeAccount, useQuotes } from "@/lib/api/hooks/use-trade-account";
+import { acceptCustomerQuote, rejectCustomerQuote } from "@/lib/api/admin/quotes-service";
+import { queryKeys } from "@/lib/api/hooks/query-keys";
 import { AccountShell, AccountTradePanel } from "@/components/account";
 import { PageBreadcrumbs } from "@/components/layout/breadcrumbs";
 
@@ -29,8 +32,28 @@ function mapQuote(quote: {
 }
 
 function AccountTradePageView() {
+  const queryClient = useQueryClient();
+  const [pendingQuoteId, setPendingQuoteId] = React.useState<string | null>(null);
   const { data: tradeAccount, isLoading: tradeLoading } = useTradeAccount();
   const { data: quotesData, isLoading: quotesLoading } = useQuotes({ limit: 20 });
+
+  const acceptQuote = useMutation({
+    mutationFn: acceptCustomerQuote,
+    onMutate: (id) => setPendingQuoteId(id),
+    onSettled: () => {
+      setPendingQuoteId(null);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tradeAccounts.quotes() });
+    },
+  });
+
+  const rejectQuote = useMutation({
+    mutationFn: (id: string) => rejectCustomerQuote(id),
+    onMutate: (id) => setPendingQuoteId(id),
+    onSettled: () => {
+      setPendingQuoteId(null);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tradeAccounts.quotes() });
+    },
+  });
 
   if (tradeLoading || quotesLoading) {
     return (
@@ -57,6 +80,9 @@ function AccountTradePageView() {
           tradeStatus={tradeAccount?.status ?? "pending"}
           creditLimit={tradeAccount ? tradeAccount.credit_limit_cents / 100 : 0}
           paymentTermsDays={tradeAccount?.payment_terms_days ?? null}
+          onAcceptQuote={(id) => void acceptQuote.mutate(id)}
+          onRejectQuote={(id) => void rejectQuote.mutate(id)}
+          quoteActionPendingId={pendingQuoteId}
         />
       </AccountShell>
     </>

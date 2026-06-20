@@ -10,6 +10,8 @@ import {
   LayoutDashboard,
   LineChart,
   Package,
+  Contact2,
+  FileText,
   Settings,
   ShoppingCart,
   Tag,
@@ -38,6 +40,8 @@ const iconMap = {
   truck: Truck,
   "bar-chart-3": BarChart3,
   "line-chart": LineChart,
+  "contact-2": Contact2,
+  "file-text": FileText,
   settings: Settings,
 } as const;
 

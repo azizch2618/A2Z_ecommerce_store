@@ -31,6 +31,11 @@ class PermissionCodename:
     USERS_MANAGE = "users.manage"
     STORE_CHECKOUT = "store.checkout"
     STORE_TRADE_PRICING = "store.trade_pricing"
+    CRM_VIEW = "crm.view"
+    CRM_MANAGE = "crm.manage"
+    QUOTES_VIEW = "quotes.view"
+    QUOTES_MANAGE = "quotes.manage"
+    QUOTES_APPROVE = "quotes.approve"
 
 
 SYSTEM_PERMISSIONS: tuple[dict[str, str], ...] = (
@@ -57,6 +62,11 @@ SYSTEM_PERMISSIONS: tuple[dict[str, str], ...] = (
     {"codename": PermissionCodename.USERS_MANAGE, "module": "users", "description": "Manage users and roles"},
     {"codename": PermissionCodename.STORE_CHECKOUT, "module": "store", "description": "Place orders on storefront"},
     {"codename": PermissionCodename.STORE_TRADE_PRICING, "module": "store", "description": "View trade pricing"},
+    {"codename": PermissionCodename.CRM_VIEW, "module": "crm", "description": "View CRM leads and opportunities"},
+    {"codename": PermissionCodename.CRM_MANAGE, "module": "crm", "description": "Create and manage CRM records"},
+    {"codename": PermissionCodename.QUOTES_VIEW, "module": "quotes", "description": "View quotations"},
+    {"codename": PermissionCodename.QUOTES_MANAGE, "module": "quotes", "description": "Create and manage quotations"},
+    {"codename": PermissionCodename.QUOTES_APPROVE, "module": "quotes", "description": "Approve or reject quotations"},
 )
 
 _ALL_PERMISSIONS = frozenset(p["codename"] for p in SYSTEM_PERMISSIONS)
@@ -93,6 +103,11 @@ _MANAGER_PERMS = frozenset({
     PermissionCodename.SUPPLIERS_VIEW,
     PermissionCodename.SUPPLIERS_MANAGE,
     PermissionCodename.SETTINGS_VIEW,
+    PermissionCodename.CRM_VIEW,
+    PermissionCodename.CRM_MANAGE,
+    PermissionCodename.QUOTES_VIEW,
+    PermissionCodename.QUOTES_MANAGE,
+    PermissionCodename.QUOTES_APPROVE,
 })
 
 ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
@@ -119,6 +134,10 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
         PermissionCodename.CUSTOMERS_VIEW,
         PermissionCodename.TRADE_VIEW,
         PermissionCodename.REPORTS_VIEW,
+        PermissionCodename.CRM_VIEW,
+        PermissionCodename.CRM_MANAGE,
+        PermissionCodename.QUOTES_VIEW,
+        PermissionCodename.QUOTES_MANAGE,
     }),
     RoleSlug.CUSTOMER_SERVICE: frozenset({
         PermissionCodename.DASHBOARD_VIEW,

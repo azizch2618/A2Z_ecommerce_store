@@ -24,6 +24,11 @@ export const Permission = {
   USERS_MANAGE: "users.manage",
   STORE_CHECKOUT: "store.checkout",
   STORE_TRADE_PRICING: "store.trade_pricing",
+  CRM_VIEW: "crm.view",
+  CRM_MANAGE: "crm.manage",
+  QUOTES_VIEW: "quotes.view",
+  QUOTES_MANAGE: "quotes.manage",
+  QUOTES_APPROVE: "quotes.approve",
 } as const;
 
 export type PermissionCodename = (typeof Permission)[keyof typeof Permission];

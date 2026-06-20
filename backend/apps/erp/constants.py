@@ -26,12 +26,22 @@ class DomainEventType(models.TextChoices):
     PO_APPROVED = "po.approved", "Purchase Order Approved"
     PO_RECEIVED = "po.received", "Purchase Order Received"
     WORKFLOW_COMPLETED = "workflow.completed", "Workflow Completed"
+    CRM_LEAD_CREATED = "crm.lead.created", "CRM Lead Created"
+    CRM_OPPORTUNITY_WON = "crm.opportunity.won", "CRM Opportunity Won"
+    CRM_OPPORTUNITY_LOST = "crm.opportunity.lost", "CRM Opportunity Lost"
+    QUOTE_DRAFT_CREATED = "quote.draft.created", "Quote Draft Created"
+    QUOTE_CREATED = "quote.created", "Quote Created"
+    QUOTE_APPROVED = "quote.approved", "Quote Approved"
+    QUOTE_ACCEPTED = "quote.accepted", "Quote Accepted"
+    QUOTE_CONVERTED = "quote.converted", "Quote Converted"
 
 
 class WorkflowCode(models.TextChoices):
     TRADE_APPROVAL = "trade_approval", "Trade Account Approval"
     PO_APPROVAL = "po_approval", "Purchase Order Approval"
     LEAVE_APPROVAL = "leave_approval", "Leave Approval"
+    CRM_OPPORTUNITY = "crm_opportunity", "CRM Opportunity Pipeline"
+    QUOTE_APPROVAL = "quote_approval", "Quote Approval"
 
 
 class AuditModule(models.TextChoices):
@@ -45,6 +55,8 @@ class AuditModule(models.TextChoices):
     REPORTS = "reports", "Reports"
     WORKFLOW = "workflow", "Workflow"
     NOTIFICATIONS = "notifications", "Notifications"
+    CRM = "crm", "CRM"
+    QUOTES = "quotes", "Quotes"
 
 
 class PartyType(models.TextChoices):

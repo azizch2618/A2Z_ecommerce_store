@@ -101,3 +101,116 @@ def _audit_event_handler(event: DomainEvent) -> None:
         metadata=event.payload,
         mirror_operational=False,
     )
+
+
+@_register_handler(DomainEventType.CRM_OPPORTUNITY_WON)
+def _crm_opportunity_won_handler(event: DomainEvent) -> None:
+    from apps.crm.models import CrmOpportunity
+    from apps.crm.quotation_service import CrmQuotationService
+
+    opportunity = (
+        CrmOpportunity.objects.filter(public_id=event.aggregate_id)
+        .select_related("party", "customer", "trade_account")
+        .first()
+    )
+    if opportunity is None:
+        return
+    CrmQuotationService.create_draft_from_opportunity(opportunity)
+
+
+@_register_handler(DomainEventType.QUOTE_DRAFT_CREATED)
+def _quote_draft_created_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.QUOTES,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Quote draft created: {event.payload.get('quote_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
+
+
+@_register_handler(DomainEventType.QUOTE_CREATED)
+def _quote_created_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.QUOTES,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Quote created: {event.payload.get('quote_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
+
+
+@_register_handler(DomainEventType.QUOTE_APPROVED)
+def _quote_approved_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.QUOTES,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Quote approved: {event.payload.get('quote_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
+
+
+@_register_handler(DomainEventType.QUOTE_ACCEPTED)
+def _quote_accepted_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+    from apps.erp.services.notifications import NotificationService
+    from apps.trade_accounts.models import Quote
+
+    quote = Quote.objects.filter(public_id=event.aggregate_id).select_related("created_by").first()
+    if quote and quote.created_by:
+        NotificationService.send(
+            recipient=quote.created_by,
+            channel="in_app",
+            subject=f"Quote {quote.quote_number} accepted",
+            body="The customer has accepted your quotation.",
+            resource_type="quote",
+            resource_id=str(quote.public_id),
+        )
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.QUOTES,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Quote accepted: {event.payload.get('quote_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
+
+
+@_register_handler(DomainEventType.QUOTE_CONVERTED)
+def _quote_converted_handler(event: DomainEvent) -> None:
+    from apps.erp.constants import AuditModule
+    from apps.erp.services.audit import AuditService
+
+    AuditService.log(
+        user=None,
+        module=AuditModule.QUOTES,
+        action=event.event_type,
+        resource_type=event.aggregate_type,
+        resource_id=event.aggregate_id,
+        summary=f"Quote converted to order {event.payload.get('order_number', '')}",
+        metadata=event.payload,
+        mirror_operational=False,
+    )
