@@ -141,12 +141,9 @@ python manage.py migrate
 python manage.py seed_erp_foundation   # workflows, notification templates, leave approval
 ```
 
-## Out of Scope
+## Out of Scope (in HRM)
 
-- Payroll, payslips, tax, superannuation
-- Recruitment / applicant tracking
-- Performance reviews
-- Employee self-service portal (API permissions exist; UI not built)
+Recruitment, performance reviews, and employee self-service portal UI remain in HRM. **Payroll** is a separate module — see [Payroll](./PAYROLL.md).
 
 ## Related Docs
 

@@ -20,6 +20,8 @@ class RoleSlug(StrEnum):
     HR_MANAGER = "hr-manager"
     DEPARTMENT_MANAGER = "department-manager"
     EMPLOYEE = "employee"
+    PAYROLL_OFFICER = "payroll-officer"
+    PAYROLL_MANAGER = "payroll-manager"
     SUPPLIER_USER = "supplier-user"
     TRADE_CUSTOMER = "trade-customer"
     CUSTOMER = "customer"
@@ -125,6 +127,18 @@ SYSTEM_ROLES: tuple[dict[str, str | bool], ...] = (
         "is_system": True,
     },
     {
+        "name": "Payroll Officer",
+        "slug": RoleSlug.PAYROLL_OFFICER,
+        "description": "Manage salary structures and calculate payroll runs.",
+        "is_system": True,
+    },
+    {
+        "name": "Payroll Manager",
+        "slug": RoleSlug.PAYROLL_MANAGER,
+        "description": "Approve and post payroll runs to the general ledger.",
+        "is_system": True,
+    },
+    {
         "name": "Supplier User",
         "slug": RoleSlug.SUPPLIER_USER,
         "description": "Supplier portal access for purchase orders and documents.",
@@ -167,5 +181,7 @@ ADMIN_PORTAL_ROLES = frozenset({
     RoleSlug.HR_OFFICER,
     RoleSlug.HR_MANAGER,
     RoleSlug.DEPARTMENT_MANAGER,
+    RoleSlug.PAYROLL_OFFICER,
+    RoleSlug.PAYROLL_MANAGER,
     RoleSlug.STAFF,
 })

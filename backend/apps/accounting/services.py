@@ -561,10 +561,14 @@ class AccountingFoundationSeed:
         (StandardAccountCode.GRN_ACCRUAL, "GRN Accrual", AccountType.LIABILITY),
         (StandardAccountCode.GST_PAYABLE, "GST Payable", AccountType.LIABILITY),
         (StandardAccountCode.TRADE_CREDIT_RESERVE, "Trade Credit Reserve", AccountType.LIABILITY),
+        (StandardAccountCode.WAGES_PAYABLE, "Wages Payable", AccountType.LIABILITY),
+        (StandardAccountCode.PAYG_WITHHOLDING, "PAYG Withholding Payable", AccountType.LIABILITY),
+        (StandardAccountCode.SUPER_PAYABLE, "Superannuation Payable", AccountType.LIABILITY),
         (StandardAccountCode.RETAINED_EARNINGS, "Retained Earnings", AccountType.EQUITY),
         (StandardAccountCode.SALES_REVENUE, "Sales Revenue", AccountType.REVENUE),
         (StandardAccountCode.COGS, "Cost of Goods Sold", AccountType.EXPENSE),
         (StandardAccountCode.INVENTORY_ADJUSTMENT, "Inventory Adjustments", AccountType.EXPENSE),
+        (StandardAccountCode.WAGES_EXPENSE, "Wages & Salaries Expense", AccountType.EXPENSE),
     )
 
     @classmethod
@@ -675,6 +679,17 @@ class AccountingFoundationSeed:
                     (StandardAccountCode.ACCOUNTS_PAYABLE, JournalLineSide.DEBIT, "total_inc_gst_cents", "DN {debit_note_number}"),
                     (StandardAccountCode.GRN_ACCRUAL, JournalLineSide.CREDIT, "total_ex_gst_cents", "DN {debit_note_number}"),
                     (StandardAccountCode.GST_RECEIVABLE, JournalLineSide.CREDIT, "gst_cents", "GST DN {debit_note_number}"),
+                ],
+            },
+            {
+                "event_type": DomainEventType.PAYROLL_RUN_POSTED,
+                "name": "Payroll Run Posted",
+                "description": "Accrue wages expense and payroll liabilities",
+                "lines": [
+                    (StandardAccountCode.WAGES_EXPENSE, JournalLineSide.DEBIT, "wages_expense_cents", "Payroll {period_number}"),
+                    (StandardAccountCode.WAGES_PAYABLE, JournalLineSide.CREDIT, "net_pay_cents", "Net pay {period_number}"),
+                    (StandardAccountCode.PAYG_WITHHOLDING, JournalLineSide.CREDIT, "payg_cents", "PAYG {period_number}"),
+                    (StandardAccountCode.SUPER_PAYABLE, JournalLineSide.CREDIT, "super_cents", "Super {period_number}"),
                 ],
             },
         ]

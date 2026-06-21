@@ -30,6 +30,8 @@ class DocumentSequenceService:
         "EMP": {"prefix": "EMP-", "name": "Employee", "pattern": "{prefix}{year}-{seq}"},
         "LR": {"prefix": "LR-", "name": "Leave Request", "pattern": "{prefix}{year}-{seq}"},
         "HA": {"prefix": "HA-", "name": "HRM Asset", "pattern": "{prefix}{year}-{seq}"},
+        "PRUN": {"prefix": "PRUN-", "name": "Payroll Run", "pattern": "{prefix}{year}-{seq}"},
+        "PS": {"prefix": "PS-", "name": "Payslip", "pattern": "{prefix}{year}-{seq}"},
     }
 
     @staticmethod

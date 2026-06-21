@@ -29,6 +29,7 @@ urlpatterns = [
     path("receivables/", include(("apps.receivables.urls", "receivables"), namespace="receivables")),
     path("payables/", include(("apps.payables.urls", "payables"), namespace="payables")),
     path("hrm/", include(("apps.hrm.urls", "hrm"), namespace="hrm")),
+    path("payroll/", include(("apps.payroll.urls", "payroll"), namespace="payroll")),
     path("inventory/", include("apps.inventory.urls")),
     path("suppliers/", include("apps.suppliers.urls")),
     path("pricing/", include("apps.pricing.urls")),

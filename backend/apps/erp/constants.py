@@ -25,6 +25,8 @@ class DocumentType(models.TextChoices):
     EMPLOYEE = "EMP", "Employee"
     LEAVE_REQUEST = "LR", "Leave Request"
     HRM_ASSET = "HA", "HRM Asset"
+    PAYROLL_RUN = "PRUN", "Payroll Run"
+    PAYSLIP = "PS", "Payslip"
 
 
 class DomainEventType(models.TextChoices):
@@ -63,6 +65,7 @@ class DomainEventType(models.TextChoices):
     AP_INVOICE_APPROVED = "ap.invoice.approved", "AP Invoice Approved"
     AP_PAYMENT_MADE = "ap.payment.made", "AP Payment Made"
     AP_DEBIT_NOTE_ISSUED = "ap.debit_note.issued", "AP Debit Note Issued"
+    PAYROLL_RUN_POSTED = "payroll.run.posted", "Payroll Run Posted"
 
 
 class WorkflowCode(models.TextChoices):
@@ -76,6 +79,7 @@ class WorkflowCode(models.TextChoices):
     WMS_ADJUSTMENT_APPROVAL = "wms_adjustment_approval", "WMS Adjustment Approval"
     AR_INVOICE_APPROVAL = "ar_invoice_approval", "AR Invoice Approval"
     AP_INVOICE_APPROVAL = "ap_invoice_approval", "AP Invoice Approval"
+    PAYROLL_RUN_APPROVAL = "payroll_run_approval", "Payroll Run Approval"
 
 
 class AuditModule(models.TextChoices):
@@ -97,6 +101,7 @@ class AuditModule(models.TextChoices):
     RECEIVABLES = "receivables", "Accounts Receivable"
     PAYABLES = "payables", "Accounts Payable"
     HRM = "hrm", "Human Resources"
+    PAYROLL = "payroll", "Payroll"
 
 
 class PartyType(models.TextChoices):

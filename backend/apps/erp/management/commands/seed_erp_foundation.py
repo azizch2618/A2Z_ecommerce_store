@@ -230,6 +230,47 @@ class Command(BaseCommand):
         )
 
         WorkflowDefinition.objects.update_or_create(
+            code=WorkflowCode.PAYROLL_RUN_APPROVAL,
+            defaults={
+                "name": "Payroll Run Approval",
+                "document_type": "payroll_period",
+                "initial_state": "calculated",
+                "states": ["calculated", "approved", "rejected"],
+                "transitions": [
+                    {
+                        "from": "calculated",
+                        "to": "approved",
+                        "action": "approve",
+                        "label": "Approve Payroll",
+                        "required_roles": [
+                            "payroll-manager",
+                            "hr-manager",
+                            "manager",
+                            "admin",
+                            "super-admin",
+                        ],
+                        "terminal_states": ["approved"],
+                    },
+                    {
+                        "from": "calculated",
+                        "to": "rejected",
+                        "action": "reject",
+                        "label": "Reject Payroll",
+                        "required_roles": [
+                            "payroll-manager",
+                            "hr-manager",
+                            "manager",
+                            "admin",
+                            "super-admin",
+                        ],
+                        "terminal_states": ["rejected"],
+                    },
+                ],
+                "is_active": True,
+            },
+        )
+
+        WorkflowDefinition.objects.update_or_create(
             code=WorkflowCode.CRM_OPPORTUNITY,
             defaults={
                 "name": "CRM Opportunity Pipeline",
@@ -620,6 +661,26 @@ class Command(BaseCommand):
                 "channel": NotificationChannel.IN_APP,
                 "subject_template": "Asset assigned: {asset_number}",
                 "body_template": "You have been assigned {asset_name} ({asset_number}).",
+                "is_active": True,
+            },
+        )
+        NotificationTemplate.objects.update_or_create(
+            code="payslip_available",
+            defaults={
+                "name": "Payslip Available",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "Payslip ready: {payslip_number}",
+                "body_template": "Your payslip {payslip_number} for {period_name} is available. Net pay: {net_pay}.",
+                "is_active": True,
+            },
+        )
+        NotificationTemplate.objects.update_or_create(
+            code="payroll_processed",
+            defaults={
+                "name": "Payroll Processed",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "Payroll posted: {period_number}",
+                "body_template": "Payroll run {period_name} ({period_number}) has been posted. Total net pay: {total_net}.",
                 "is_active": True,
             },
         )

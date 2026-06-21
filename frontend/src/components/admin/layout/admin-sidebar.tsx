@@ -21,6 +21,7 @@ import {
   Users,
   UsersRound,
   Warehouse,
+  Banknote,
 } from "lucide-react";
 
 import { adminNavItems } from "@/config/admin/nav";
@@ -48,6 +49,7 @@ const iconMap = {
   "clipboard-list": ClipboardList,
   boxes: Boxes,
   "users-round": UsersRound,
+  banknote: Banknote,
   settings: Settings,
 } as const;
 

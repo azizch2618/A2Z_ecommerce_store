@@ -41,6 +41,10 @@ export const Permission = {
   HRM_MANAGE: "hrm.manage",
   HRM_APPROVE: "hrm.approve",
   HRM_SELF: "hrm.self",
+  PAYROLL_VIEW: "payroll.view",
+  PAYROLL_MANAGE: "payroll.manage",
+  PAYROLL_APPROVE: "payroll.approve",
+  PAYROLL_POST: "payroll.post",
 } as const;
 
 export type PermissionCodename = (typeof Permission)[keyof typeof Permission];

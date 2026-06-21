@@ -223,6 +223,20 @@ export const API_ENDPOINTS = {
     assetAssignments: "/hrm/admin/asset-assignments/",
     assetReturn: (id: string) => `/hrm/admin/asset-assignments/${id}/return/`,
   },
+  payroll: {
+    dashboard: "/payroll/admin/dashboard/",
+    periods: "/payroll/admin/periods/",
+    period: (id: string) => `/payroll/admin/periods/${id}/`,
+    periodCalculate: (id: string) => `/payroll/admin/periods/${id}/calculate/`,
+    periodApprove: (id: string) => `/payroll/admin/periods/${id}/approve/`,
+    periodPost: (id: string) => `/payroll/admin/periods/${id}/post/`,
+    periodAdjustment: (id: string) => `/payroll/admin/periods/${id}/adjustments/`,
+    salaryStructures: "/payroll/admin/salary-structures/",
+    payslips: "/payroll/admin/payslips/",
+    payslip: (id: string) => `/payroll/admin/payslips/${id}/`,
+    payslipPdf: (id: string) => `/payroll/admin/payslips/${id}/pdf/`,
+    employeeHistory: (id: string) => `/payroll/admin/employees/${id}/payroll-history/`,
+  },
 } as const;
 
 export const API_DEFAULTS = {

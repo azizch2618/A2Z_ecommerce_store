@@ -41,11 +41,15 @@ class StandardAccountCode:
     ACCOUNTS_PAYABLE = "2100"
     GRN_ACCRUAL = "2150"
     GST_PAYABLE = "2200"
+    TRADE_CREDIT_RESERVE = "2300"
+    WAGES_PAYABLE = "2400"
+    PAYG_WITHHOLDING = "2410"
+    SUPER_PAYABLE = "2420"
     RETAINED_EARNINGS = "3100"
     SALES_REVENUE = "4100"
     COGS = "5100"
     INVENTORY_ADJUSTMENT = "5200"
-    TRADE_CREDIT_RESERVE = "2300"
+    WAGES_EXPENSE = "5300"
 
 
 # Domain events that accounting listens to
