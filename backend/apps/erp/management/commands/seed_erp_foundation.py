@@ -684,6 +684,16 @@ class Command(BaseCommand):
                 "is_active": True,
             },
         )
+        NotificationTemplate.objects.update_or_create(
+            code="report_delivered",
+            defaults={
+                "name": "Scheduled Report Delivered",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "Report delivered: {report_name}",
+                "body_template": "Your scheduled report '{report_name}' was generated ({filename}).",
+                "is_active": True,
+            },
+        )
 
         PlatformSetting.objects.update_or_create(
             company=company,

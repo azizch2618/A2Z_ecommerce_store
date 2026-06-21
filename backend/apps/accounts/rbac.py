@@ -61,11 +61,13 @@ class PermissionCodename:
     PAYROLL_MANAGE = "payroll.manage"
     PAYROLL_APPROVE = "payroll.approve"
     PAYROLL_POST = "payroll.post"
+    ANALYTICS_MANAGE = "analytics.manage"
 
 
 SYSTEM_PERMISSIONS: tuple[dict[str, str], ...] = (
     {"codename": PermissionCodename.DASHBOARD_VIEW, "module": "dashboard", "description": "View admin dashboard"},
     {"codename": PermissionCodename.ANALYTICS_VIEW, "module": "analytics", "description": "View analytics"},
+    {"codename": PermissionCodename.ANALYTICS_MANAGE, "module": "analytics", "description": "Manage KPI definitions and scheduled reports"},
     {"codename": PermissionCodename.REPORTS_VIEW, "module": "reports", "description": "View reports"},
     {"codename": PermissionCodename.REPORTS_EXPORT, "module": "reports", "description": "Export reports"},
     {"codename": PermissionCodename.CATALOG_VIEW, "module": "catalog", "description": "View products, categories, brands"},
@@ -140,6 +142,7 @@ INTERNAL_ROLES = frozenset({
     RoleSlug.EMPLOYEE,
     RoleSlug.PAYROLL_OFFICER,
     RoleSlug.PAYROLL_MANAGER,
+    RoleSlug.EXECUTIVE,
     RoleSlug.STAFF,
 })
 
@@ -284,6 +287,7 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
     }),
     RoleSlug.FINANCE_MANAGER: frozenset({
         PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.ANALYTICS_VIEW,
         PermissionCodename.REPORTS_VIEW,
         PermissionCodename.REPORTS_EXPORT,
         PermissionCodename.ACCOUNTING_VIEW,
@@ -329,9 +333,16 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
     }),
     RoleSlug.DEPARTMENT_MANAGER: frozenset({
         PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.ANALYTICS_VIEW,
         PermissionCodename.HRM_VIEW,
         PermissionCodename.HRM_APPROVE,
         PermissionCodename.HRM_SELF,
+    }),
+    RoleSlug.EXECUTIVE: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.ANALYTICS_VIEW,
+        PermissionCodename.REPORTS_VIEW,
+        PermissionCodename.REPORTS_EXPORT,
     }),
     RoleSlug.EMPLOYEE: frozenset({
         PermissionCodename.HRM_SELF,

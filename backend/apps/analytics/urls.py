@@ -8,7 +8,23 @@ from apps.analytics.admin_views import (
     AdminProductListView,
     DashboardView,
 )
-from apps.analytics.reports import export_report_csv, list_reports
+from apps.analytics.bi_views import (
+    BiFullSnapshotView,
+    BiReportCatalogView,
+    BiReportExportView,
+    ExecutiveDashboardView,
+    FinanceAnalyticsView,
+    HrAnalyticsView,
+    InventoryAnalyticsView,
+    KpiDefinitionListView,
+    KpiDefinitionUpdateView,
+    KpiEvaluateView,
+    ProcurementAnalyticsView,
+    SalesAnalyticsView,
+    ScheduledReportListCreateView,
+)
+from apps.analytics.export import export_report
+from apps.analytics.reports import list_reports
 from apps.analytics.views import EventCreateView
 
 app_name = "analytics"
@@ -25,21 +41,17 @@ class ReportExportView(APIView):
     permission_classes = [CanExportReports]
 
     def post(self, request):
-        report_id = request.data.get("report_id", "")
+        report_id = request.data.get("report_id", request.data.get("reportId", ""))
         export_format = request.data.get("format", "csv")
-        if export_format not in {"csv", "excel", "pdf"}:
-            return Response({"format": ["Unsupported format."]}, status=400)
         try:
-            filename, content = export_report_csv(report_id=report_id, user=request.user)
+            payload = export_report(
+                report_id=report_id,
+                export_format=export_format,
+                user=request.user,
+            )
         except ValueError as exc:
-            return Response({"detail": str(exc)}, status=404)
-        return Response(
-            {
-                "filename": filename,
-                "content": content,
-                "mime_type": "text/csv",
-            }
-        )
+            return Response({"detail": str(exc)}, status=400)
+        return Response(payload)
 
 
 urlpatterns = [
@@ -49,4 +61,17 @@ urlpatterns = [
     path("admin/products/", AdminProductListView.as_view(), name="admin-products"),
     path("admin/reports/", ReportCatalogView.as_view(), name="admin-reports"),
     path("admin/reports/export/", ReportExportView.as_view(), name="admin-reports-export"),
+    path("admin/bi/executive/", ExecutiveDashboardView.as_view(), name="bi-executive"),
+    path("admin/bi/sales/", SalesAnalyticsView.as_view(), name="bi-sales"),
+    path("admin/bi/inventory/", InventoryAnalyticsView.as_view(), name="bi-inventory"),
+    path("admin/bi/procurement/", ProcurementAnalyticsView.as_view(), name="bi-procurement"),
+    path("admin/bi/finance/", FinanceAnalyticsView.as_view(), name="bi-finance"),
+    path("admin/bi/hr/", HrAnalyticsView.as_view(), name="bi-hr"),
+    path("admin/bi/snapshot/", BiFullSnapshotView.as_view(), name="bi-snapshot"),
+    path("admin/bi/kpis/", KpiDefinitionListView.as_view(), name="bi-kpis"),
+    path("admin/bi/kpis/evaluate/", KpiEvaluateView.as_view(), name="bi-kpis-evaluate"),
+    path("admin/bi/kpis/<uuid:kpi_id>/", KpiDefinitionUpdateView.as_view(), name="bi-kpi-update"),
+    path("admin/bi/reports/", BiReportCatalogView.as_view(), name="bi-reports"),
+    path("admin/bi/reports/export/", BiReportExportView.as_view(), name="bi-reports-export"),
+    path("admin/bi/schedules/", ScheduledReportListCreateView.as_view(), name="bi-schedules"),
 ]

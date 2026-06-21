@@ -2,8 +2,11 @@
 import os
 
 from .base import *  # noqa: F403
+from config.sentry import init_sentry
 
 DEBUG = False
+
+init_sentry()
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "True").lower() in (

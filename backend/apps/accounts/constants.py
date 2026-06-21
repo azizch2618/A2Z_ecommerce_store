@@ -22,6 +22,7 @@ class RoleSlug(StrEnum):
     EMPLOYEE = "employee"
     PAYROLL_OFFICER = "payroll-officer"
     PAYROLL_MANAGER = "payroll-manager"
+    EXECUTIVE = "executive"
     SUPPLIER_USER = "supplier-user"
     TRADE_CUSTOMER = "trade-customer"
     CUSTOMER = "customer"
@@ -136,6 +137,12 @@ SYSTEM_ROLES: tuple[dict[str, str | bool], ...] = (
         "name": "Payroll Manager",
         "slug": RoleSlug.PAYROLL_MANAGER,
         "description": "Approve and post payroll runs to the general ledger.",
+        "is_system": True,
+    },
+    {
+        "name": "Executive",
+        "slug": RoleSlug.EXECUTIVE,
+        "description": "Executive BI dashboards, KPIs, and cross-module analytics.",
         "is_system": True,
     },
     {
