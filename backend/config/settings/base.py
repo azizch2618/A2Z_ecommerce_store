@@ -70,6 +70,7 @@ LOCAL_APPS = [
     "apps.accounting",
     "apps.receivables",
     "apps.payables",
+    "apps.hrm",
     "apps.pricing",
     "apps.orders",
     "apps.payments",

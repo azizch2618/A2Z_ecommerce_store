@@ -37,6 +37,10 @@ export const Permission = {
   WMS_MANAGE: "wms.manage",
   WMS_APPROVE: "wms.approve",
   WMS_EXECUTE: "wms.execute",
+  HRM_VIEW: "hrm.view",
+  HRM_MANAGE: "hrm.manage",
+  HRM_APPROVE: "hrm.approve",
+  HRM_SELF: "hrm.self",
 } as const;
 
 export type PermissionCodename = (typeof Permission)[keyof typeof Permission];

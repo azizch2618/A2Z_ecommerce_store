@@ -18,6 +18,7 @@ export type AdminNavIcon =
   | "file-text"
   | "clipboard-list"
   | "boxes"
+  | "users-round"
   | "settings";
 
 export interface AdminNavItem {
@@ -44,6 +45,7 @@ export const adminNavItems: AdminNavItem[] = [
   { label: "Quotes", href: "/admin-dashboard/quotes", icon: "file-text", section: "Sales", permission: Permission.QUOTES_VIEW },
   { label: "Procurement", href: "/admin-dashboard/procurement", icon: "clipboard-list", section: "Procurement", permission: Permission.PROCUREMENT_VIEW },
   { label: "WMS", href: "/admin-dashboard/wms", icon: "boxes", section: "Operations", permission: Permission.WMS_VIEW },
+  { label: "HR", href: "/admin-dashboard/hrm", icon: "users-round", section: "People", permission: Permission.HRM_VIEW },
   { label: "Suppliers", href: "/admin-dashboard/suppliers", icon: "truck", section: "Procurement", permission: Permission.SUPPLIERS_VIEW },
   { label: "Reports", href: "/admin-dashboard/reports", icon: "bar-chart-3", section: "Insights", permission: Permission.REPORTS_VIEW },
   { label: "Analytics", href: "/admin-dashboard/analytics", icon: "line-chart", section: "Insights", permission: Permission.ANALYTICS_VIEW },

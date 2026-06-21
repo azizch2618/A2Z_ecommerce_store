@@ -16,6 +16,10 @@ class RoleSlug(StrEnum):
     PROCUREMENT_MANAGER = "procurement-manager"
     FINANCE_USER = "finance-user"
     FINANCE_MANAGER = "finance-manager"
+    HR_OFFICER = "hr-officer"
+    HR_MANAGER = "hr-manager"
+    DEPARTMENT_MANAGER = "department-manager"
+    EMPLOYEE = "employee"
     SUPPLIER_USER = "supplier-user"
     TRADE_CUSTOMER = "trade-customer"
     CUSTOMER = "customer"
@@ -97,6 +101,30 @@ SYSTEM_ROLES: tuple[dict[str, str | bool], ...] = (
         "is_system": True,
     },
     {
+        "name": "HR Officer",
+        "slug": RoleSlug.HR_OFFICER,
+        "description": "Manage employee records, documents, attendance, and assets.",
+        "is_system": True,
+    },
+    {
+        "name": "HR Manager",
+        "slug": RoleSlug.HR_MANAGER,
+        "description": "Oversee HR operations and approve leave requests.",
+        "is_system": True,
+    },
+    {
+        "name": "Department Manager",
+        "slug": RoleSlug.DEPARTMENT_MANAGER,
+        "description": "Approve team leave and view department HR data.",
+        "is_system": True,
+    },
+    {
+        "name": "Employee",
+        "slug": RoleSlug.EMPLOYEE,
+        "description": "Self-service attendance and leave submission.",
+        "is_system": True,
+    },
+    {
         "name": "Supplier User",
         "slug": RoleSlug.SUPPLIER_USER,
         "description": "Supplier portal access for purchase orders and documents.",
@@ -136,5 +164,8 @@ ADMIN_PORTAL_ROLES = frozenset({
     RoleSlug.TRADE_REVIEWER,
     RoleSlug.FINANCE_USER,
     RoleSlug.FINANCE_MANAGER,
+    RoleSlug.HR_OFFICER,
+    RoleSlug.HR_MANAGER,
+    RoleSlug.DEPARTMENT_MANAGER,
     RoleSlug.STAFF,
 })

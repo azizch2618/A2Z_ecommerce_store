@@ -19,6 +19,8 @@ export const ADMIN_ROUTE_PERMISSIONS: Record<string, PermissionCodename> = {
   "/admin-dashboard/quotes": Permission.QUOTES_VIEW,
   "/admin-dashboard/procurement": Permission.PROCUREMENT_VIEW,
   "/admin-dashboard/wms": Permission.WMS_VIEW,
+  "/admin-dashboard/hrm": Permission.HRM_VIEW,
+  "/admin-dashboard/hrm/employees": Permission.HRM_VIEW,
   "/warehouse-mobile": Permission.WMS_EXECUTE,
   "/admin-dashboard/settings": Permission.SETTINGS_VIEW,
 };

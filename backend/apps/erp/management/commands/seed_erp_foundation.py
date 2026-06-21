@@ -191,24 +191,23 @@ class Command(BaseCommand):
         WorkflowDefinition.objects.update_or_create(
             code=WorkflowCode.LEAVE_APPROVAL,
             defaults={
-                "name": "Leave Request Approval (Future HRM)",
+                "name": "Leave Request Approval",
                 "document_type": "leave_request",
-                "initial_state": "draft",
-                "states": ["draft", "submitted", "approved", "rejected"],
+                "initial_state": "submitted",
+                "states": ["submitted", "approved", "rejected"],
                 "transitions": [
-                    {
-                        "from": "draft",
-                        "to": "submitted",
-                        "action": "submit",
-                        "label": "Submit",
-                        "required_roles": ["employee"],
-                    },
                     {
                         "from": "submitted",
                         "to": "approved",
                         "action": "approve",
                         "label": "Approve",
-                        "required_roles": ["manager", "admin"],
+                        "required_roles": [
+                            "department-manager",
+                            "hr-manager",
+                            "manager",
+                            "admin",
+                            "super-admin",
+                        ],
                         "terminal_states": ["approved"],
                     },
                     {
@@ -216,12 +215,17 @@ class Command(BaseCommand):
                         "to": "rejected",
                         "action": "reject",
                         "label": "Reject",
-                        "required_roles": ["manager", "admin"],
+                        "required_roles": [
+                            "department-manager",
+                            "hr-manager",
+                            "manager",
+                            "admin",
+                            "super-admin",
+                        ],
                         "terminal_states": ["rejected"],
                     },
                 ],
                 "is_active": True,
-                "metadata": {"future_module": "hrm"},
             },
         )
 
@@ -576,6 +580,46 @@ class Command(BaseCommand):
                 "channel": NotificationChannel.IN_APP,
                 "subject_template": "Opportunity won: {opportunity_name}",
                 "body_template": "Opportunity {opportunity_name} has been marked as won.",
+                "is_active": True,
+            },
+        )
+        NotificationTemplate.objects.update_or_create(
+            code="leave_submitted",
+            defaults={
+                "name": "Leave Request Submitted",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "Leave request {request_number} submitted",
+                "body_template": "{employee_name} submitted leave request {request_number} for approval.",
+                "is_active": True,
+            },
+        )
+        NotificationTemplate.objects.update_or_create(
+            code="leave_approved",
+            defaults={
+                "name": "Leave Request Approved",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "Leave approved: {request_number}",
+                "body_template": "Your leave request {request_number} has been approved.",
+                "is_active": True,
+            },
+        )
+        NotificationTemplate.objects.update_or_create(
+            code="leave_rejected",
+            defaults={
+                "name": "Leave Request Rejected",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "Leave rejected: {request_number}",
+                "body_template": "Your leave request {request_number} has been rejected.",
+                "is_active": True,
+            },
+        )
+        NotificationTemplate.objects.update_or_create(
+            code="asset_assigned",
+            defaults={
+                "name": "Asset Assigned",
+                "channel": NotificationChannel.IN_APP,
+                "subject_template": "Asset assigned: {asset_number}",
+                "body_template": "You have been assigned {asset_name} ({asset_number}).",
                 "is_active": True,
             },
         )

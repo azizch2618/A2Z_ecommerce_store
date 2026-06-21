@@ -27,6 +27,9 @@ class DocumentSequenceService:
         "PP": {"prefix": "PP-", "name": "AP Payment", "pattern": "{prefix}{year}-{seq}"},
         "CN": {"prefix": "CN-", "name": "Credit Note", "pattern": "{prefix}{year}-{seq}"},
         "DN": {"prefix": "DN-", "name": "Debit Note", "pattern": "{prefix}{year}-{seq}"},
+        "EMP": {"prefix": "EMP-", "name": "Employee", "pattern": "{prefix}{year}-{seq}"},
+        "LR": {"prefix": "LR-", "name": "Leave Request", "pattern": "{prefix}{year}-{seq}"},
+        "HA": {"prefix": "HA-", "name": "HRM Asset", "pattern": "{prefix}{year}-{seq}"},
     }
 
     @staticmethod

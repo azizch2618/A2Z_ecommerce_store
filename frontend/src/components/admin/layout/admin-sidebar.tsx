@@ -19,6 +19,7 @@ import {
   Tag,
   Truck,
   Users,
+  UsersRound,
   Warehouse,
 } from "lucide-react";
 
@@ -46,6 +47,7 @@ const iconMap = {
   "file-text": FileText,
   "clipboard-list": ClipboardList,
   boxes: Boxes,
+  "users-round": UsersRound,
   settings: Settings,
 } as const;
 

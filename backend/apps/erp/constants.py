@@ -22,6 +22,9 @@ class DocumentType(models.TextChoices):
     AP_PAYMENT = "PP", "AP Payment"
     CREDIT_NOTE = "CN", "Credit Note"
     DEBIT_NOTE = "DN", "Debit Note"
+    EMPLOYEE = "EMP", "Employee"
+    LEAVE_REQUEST = "LR", "Leave Request"
+    HRM_ASSET = "HA", "HRM Asset"
 
 
 class DomainEventType(models.TextChoices):
@@ -93,6 +96,7 @@ class AuditModule(models.TextChoices):
     ACCOUNTING = "accounting", "Accounting"
     RECEIVABLES = "receivables", "Accounts Receivable"
     PAYABLES = "payables", "Accounts Payable"
+    HRM = "hrm", "Human Resources"
 
 
 class PartyType(models.TextChoices):

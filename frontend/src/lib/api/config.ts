@@ -206,6 +206,23 @@ export const API_ENDPOINTS = {
     cycleCounts: "/wms/admin/cycle-counts/",
     cycleCountRecord: (id: string) => `/wms/admin/cycle-counts/${id}/record/`,
   },
+  hrm: {
+    dashboard: "/hrm/admin/dashboard/",
+    orgStructure: "/hrm/admin/org-structure/",
+    employees: "/hrm/admin/employees/",
+    employee: (id: string) => `/hrm/admin/employees/${id}/`,
+    employeeDocuments: (id: string) => `/hrm/admin/employees/${id}/documents/`,
+    clockIn: (id: string) => `/hrm/admin/employees/${id}/clock-in/`,
+    clockOut: (id: string) => `/hrm/admin/employees/${id}/clock-out/`,
+    leaveRequests: "/hrm/admin/leave-requests/",
+    leaveSubmit: (id: string) => `/hrm/admin/leave-requests/${id}/submit/`,
+    leaveApprove: (id: string) => `/hrm/admin/leave-requests/${id}/approve/`,
+    leaveReject: (id: string) => `/hrm/admin/leave-requests/${id}/reject/`,
+    assets: "/hrm/admin/assets/",
+    assetAssign: (id: string) => `/hrm/admin/assets/${id}/assign/`,
+    assetAssignments: "/hrm/admin/asset-assignments/",
+    assetReturn: (id: string) => `/hrm/admin/asset-assignments/${id}/return/`,
+  },
 } as const;
 
 export const API_DEFAULTS = {

@@ -53,6 +53,10 @@ class PermissionCodename:
     PAYABLES_VIEW = "payables.view"
     PAYABLES_MANAGE = "payables.manage"
     PAYABLES_APPROVE = "payables.approve"
+    HRM_VIEW = "hrm.view"
+    HRM_MANAGE = "hrm.manage"
+    HRM_APPROVE = "hrm.approve"
+    HRM_SELF = "hrm.self"
 
 
 SYSTEM_PERMISSIONS: tuple[dict[str, str], ...] = (
@@ -101,6 +105,10 @@ SYSTEM_PERMISSIONS: tuple[dict[str, str], ...] = (
     {"codename": PermissionCodename.PAYABLES_VIEW, "module": "payables", "description": "View supplier invoices, statements, and AP reports"},
     {"codename": PermissionCodename.PAYABLES_MANAGE, "module": "payables", "description": "Create and manage supplier invoices and payments"},
     {"codename": PermissionCodename.PAYABLES_APPROVE, "module": "payables", "description": "Approve supplier invoices and debit notes"},
+    {"codename": PermissionCodename.HRM_VIEW, "module": "hrm", "description": "View employees, attendance, leave, and HR reports"},
+    {"codename": PermissionCodename.HRM_MANAGE, "module": "hrm", "description": "Manage employees, documents, attendance, and assets"},
+    {"codename": PermissionCodename.HRM_APPROVE, "module": "hrm", "description": "Approve leave requests"},
+    {"codename": PermissionCodename.HRM_SELF, "module": "hrm", "description": "Self-service clock in/out and leave submission"},
 )
 
 _ALL_PERMISSIONS = frozenset(p["codename"] for p in SYSTEM_PERMISSIONS)
@@ -118,6 +126,10 @@ INTERNAL_ROLES = frozenset({
     RoleSlug.WAREHOUSE_OPERATOR,
     RoleSlug.FINANCE_USER,
     RoleSlug.FINANCE_MANAGER,
+    RoleSlug.HR_OFFICER,
+    RoleSlug.HR_MANAGER,
+    RoleSlug.DEPARTMENT_MANAGER,
+    RoleSlug.EMPLOYEE,
     RoleSlug.STAFF,
 })
 
@@ -163,6 +175,9 @@ _MANAGER_PERMS = frozenset({
     PermissionCodename.PAYABLES_VIEW,
     PermissionCodename.PAYABLES_MANAGE,
     PermissionCodename.PAYABLES_APPROVE,
+    PermissionCodename.HRM_VIEW,
+    PermissionCodename.HRM_MANAGE,
+    PermissionCodename.HRM_APPROVE,
 })
 
 ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
@@ -264,8 +279,30 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
         PermissionCodename.RECEIVABLES_MANAGE,
         PermissionCodename.RECEIVABLES_APPROVE,
         PermissionCodename.PAYABLES_VIEW,
-        PermissionCodename.PAYABLES_MANAGE,
-        PermissionCodename.PAYABLES_APPROVE,
+    PermissionCodename.HRM_VIEW,
+    PermissionCodename.HRM_MANAGE,
+    PermissionCodename.HRM_APPROVE,
+}),
+    RoleSlug.HR_OFFICER: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.HRM_VIEW,
+        PermissionCodename.HRM_MANAGE,
+    }),
+    RoleSlug.HR_MANAGER: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.REPORTS_VIEW,
+        PermissionCodename.HRM_VIEW,
+        PermissionCodename.HRM_MANAGE,
+        PermissionCodename.HRM_APPROVE,
+    }),
+    RoleSlug.DEPARTMENT_MANAGER: frozenset({
+        PermissionCodename.DASHBOARD_VIEW,
+        PermissionCodename.HRM_VIEW,
+        PermissionCodename.HRM_APPROVE,
+        PermissionCodename.HRM_SELF,
+    }),
+    RoleSlug.EMPLOYEE: frozenset({
+        PermissionCodename.HRM_SELF,
     }),
     RoleSlug.TRADE_CUSTOMER: frozenset({
         PermissionCodename.STORE_CHECKOUT,
