@@ -6,6 +6,8 @@
 
 | Document | Role |
 |----------|------|
+| [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md) | **Readiness score, risks, architecture summary** |
+| [GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md) | **Go-live and rollback checklist** |
 | This plan | **Execution checklist** — what to do, in order |
 | [DEPLOYMENT_ARCHITECTURE.md](./DEPLOYMENT_ARCHITECTURE.md) | Deep architecture, scaling, module evolution |
 | [deployment.md](./deployment.md) | Day-2 runbook (deploy, rollback, smoke tests) |

@@ -6,6 +6,7 @@ import { useEffect } from "react";
 
 import { hasAuthTokens } from "@/lib/api/auth/token-storage";
 import { useAuth } from "@/lib/api/hooks/use-auth";
+import { authDebug } from "@/lib/auth/auth-debug";
 
 export interface RouteGuardProps {
   children: ReactNode;
@@ -28,11 +29,25 @@ function RouteGuard({
 
   useEffect(() => {
     if (isLoading) return;
-    if (!hasAuthTokens() || !isAuthenticated) {
+
+    const hasSession = hasAuthTokens();
+    if (!hasSession || !isAuthenticated) {
+      authDebug("route-guard", "redirecting to login", {
+        pathname: window.location.pathname,
+        hasSession,
+        isAuthenticated,
+        isLoading,
+      });
       const params = new URLSearchParams({ redirect: window.location.pathname });
       router.replace(`${redirectTo}?${params}`);
+      return;
     }
-  }, [isAuthenticated, isLoading, redirectTo, router]);
+
+    authDebug("route-guard", "access granted", {
+      pathname: window.location.pathname,
+      email: user?.email,
+    });
+  }, [isAuthenticated, isLoading, redirectTo, router, user?.email]);
 
   if (isLoading) {
     return (

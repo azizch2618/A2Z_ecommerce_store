@@ -1,4 +1,4 @@
-"use client";
+import Link from "next/link";
 
 import type { AdminCustomer } from "@/lib/api/admin/types";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +34,14 @@ function RecentCustomersTable({ customers }: RecentCustomersTableProps) {
       <TableBody>
         {customers.map((customer) => (
           <TableRow key={customer.id}>
-            <TableCell className="font-medium">{customer.name}</TableCell>
+            <TableCell className="font-medium">
+              <Link
+                href={`/admin-dashboard/customers/${customer.id}`}
+                className="hover:text-brand-blue hover:underline"
+              >
+                {customer.name}
+              </Link>
+            </TableCell>
             <TableCell className="text-muted-foreground">{customer.email}</TableCell>
             <TableCell className="text-right tabular-nums">{customer.orderCount}</TableCell>
             <TableCell>

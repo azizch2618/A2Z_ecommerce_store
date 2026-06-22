@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { AdminCard } from "@/components/admin/shared/admin-card";
 import { AdminErrorState } from "@/components/admin/shared/admin-error-state";
@@ -18,7 +19,8 @@ import {
   PieChartWidget,
   RevenueChart,
 } from "@/components/admin/charts/admin-charts-lazy";
-import { useAdminDashboard } from "@/lib/api/admin/hooks";
+import { useAdminDashboard, useExportReport } from "@/lib/api/admin/hooks";
+import { downloadTextFile } from "@/lib/admin/download-text-file";
 import type { RevenuePeriod } from "@/lib/api/admin/types";
 import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,7 +29,23 @@ import { Download } from "lucide-react";
 
 function AdminDashboardView() {
   const { data, isLoading, isError, error } = useAdminDashboard();
+  const exportReport = useExportReport();
   const [revenuePeriod, setRevenuePeriod] = useState<RevenuePeriod>("weekly");
+
+  const handleExportSummary = () => {
+    exportReport.mutate(
+      { reportId: "sales", format: "csv" },
+      {
+        onSuccess: (payload) => {
+          downloadTextFile(payload.filename, payload.content);
+          toast.success("Dashboard summary exported");
+        },
+        onError: () => {
+          toast.error("Failed to export dashboard summary");
+        },
+      }
+    );
+  };
 
   if (isLoading) {
     return (
@@ -62,7 +80,12 @@ function AdminDashboardView() {
         title="Dashboard"
         description="Overview of sales, inventory, and operations across A2Z Tools."
         actions={
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportSummary}
+            disabled={exportReport.isPending}
+          >
             <Download className="mr-2 size-4" />
             Export summary
           </Button>

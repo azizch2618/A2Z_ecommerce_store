@@ -6,7 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { defaultLoginForm } from "@/config/auth";
+import { authDebug } from "@/lib/auth/auth-debug";
+import { resolvePostLoginRedirect } from "@/lib/auth/post-login-redirect";
 import { validateLoginForm } from "@/lib/auth-validation";
+import { hasAuthTokens } from "@/lib/api/auth/token-storage";
+import { useAuthStore } from "@/lib/api/auth/auth-store";
 import { useLogin } from "@/lib/api/hooks/use-auth";
 import type { LoginFormErrors, LoginFormState } from "@/types/auth";
 import { AuthCard } from "@/components/auth/auth-card";
@@ -32,13 +36,25 @@ function LoginForm() {
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
-      await loginMutation.mutateAsync({
+      const result = await loginMutation.mutateAsync({
         email: form.email,
         password: form.password,
       });
       toast.success("Signed in successfully");
-      const redirect = searchParams.get("redirect") ?? "/account";
-      router.push(redirect);
+
+      const redirectParam = searchParams.get("redirect");
+      const user = useAuthStore.getState().user ?? result.user;
+      const destination = resolvePostLoginRedirect(user, redirectParam);
+
+      authDebug("login-form", "redirect decision", {
+        redirectParam,
+        destination,
+        roles: user.roles,
+        hasSessionCookie: hasAuthTokens(),
+        isAuthenticated: useAuthStore.getState().isAuthenticated,
+      });
+
+      router.replace(destination);
     } catch {
       toast.error("Sign in failed", {
         description: "Check your email and password. Demo: customer@demo.a2ztools.com",

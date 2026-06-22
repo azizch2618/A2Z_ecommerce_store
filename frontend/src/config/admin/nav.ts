@@ -50,6 +50,7 @@ export const adminNavItems: AdminNavItem[] = [
   { label: "Payroll", href: "/admin-dashboard/payroll", icon: "banknote", section: "People", permission: Permission.PAYROLL_VIEW },
   { label: "Suppliers", href: "/admin-dashboard/suppliers", icon: "truck", section: "Procurement", permission: Permission.SUPPLIERS_VIEW },
   { label: "Reports", href: "/admin-dashboard/reports", icon: "bar-chart-3", section: "Insights", permission: Permission.REPORTS_VIEW },
+  { label: "Executive BI", href: "/admin-dashboard/executive-bi", icon: "bar-chart-3", section: "Insights", permission: Permission.ANALYTICS_VIEW },
   { label: "Analytics", href: "/admin-dashboard/analytics", icon: "line-chart", section: "Insights", permission: Permission.ANALYTICS_VIEW },
   { label: "Settings", href: "/admin-dashboard/settings", icon: "settings", section: "System", permission: Permission.SETTINGS_VIEW },
 ];

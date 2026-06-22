@@ -57,6 +57,9 @@ export interface OrderSummary {
 }
 
 export interface OrderDetail extends OrderSummary {
+  customer_name?: string;
+  customer_email?: string;
+  customer_id?: string;
   items: OrderLineItem[];
   totals: OrderTotals;
   billing_address: ApiAddress;
@@ -71,6 +74,22 @@ export interface OrderDetail extends OrderSummary {
     status: PaymentStatus;
     client_secret?: string | null;
   } | null;
+  shipments?: Array<{
+    id: string;
+    carrier: string;
+    tracking_number: string;
+    tracking_url: string;
+    status: string;
+    shipped_at: string | null;
+    delivered_at: string | null;
+  }>;
+  po_number?: string;
+  customer_notes?: string;
+  paid_at?: string | null;
+  packed_at?: string | null;
+  shipped_at?: string | null;
+  delivered_at?: string | null;
+  cancelled_at?: string | null;
 }
 
 export interface CreateOrderPayload {

@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 
 import { useAuthStore } from "../auth/auth-store";
+import { authDebug } from "@/lib/auth/auth-debug";
 import { hasAuthTokens } from "../auth/token-storage";
 import {
   createAddress,

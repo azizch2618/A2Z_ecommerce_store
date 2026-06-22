@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import CanExportReports, CanViewReports
 from apps.analytics.admin_views import (
+    AdminCustomerDetailView,
     AdminCustomerListView,
     AdminProductListView,
     DashboardView,
@@ -58,6 +59,11 @@ urlpatterns = [
     path("events/", EventCreateView.as_view(), name="event-create"),
     path("admin/dashboard/", DashboardView.as_view(), name="admin-dashboard"),
     path("admin/customers/", AdminCustomerListView.as_view(), name="admin-customers"),
+    path(
+        "admin/customers/<uuid:customer_id>/",
+        AdminCustomerDetailView.as_view(),
+        name="admin-customer-detail",
+    ),
     path("admin/products/", AdminProductListView.as_view(), name="admin-products"),
     path("admin/reports/", ReportCatalogView.as_view(), name="admin-reports"),
     path("admin/reports/export/", ReportExportView.as_view(), name="admin-reports-export"),

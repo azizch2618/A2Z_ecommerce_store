@@ -6,6 +6,7 @@ import type {
   PriceBlock,
   StockBlock,
 } from "./common";
+import type { ApiDecimalRating } from "@/lib/format/rating";
 
 export type ProductSort =
   | "relevance"
@@ -30,7 +31,7 @@ export interface ProductSummary {
   name: string;
   slug: string;
   short_description: string | null;
-  brand: BrandRef;
+  brand: BrandRef | null;
   primary_image: ImageRef | null;
   default_variant: {
     id: string;
@@ -41,7 +42,7 @@ export interface ProductSummary {
   price: PriceBlock;
   stock: StockBlock;
   badges: string[];
-  average_rating: number | null;
+  average_rating: ApiDecimalRating;
   review_count: number;
 }
 
@@ -70,7 +71,7 @@ export interface ProductDetail {
   short_description: string | null;
   product_type: "simple" | "variable" | "bundle";
   visibility: string;
-  brand: BrandRef;
+  brand: BrandRef | null;
   categories: Array<{
     id: string;
     name: string;
@@ -110,7 +111,7 @@ export interface ProductDetail {
   }>;
   meta_title: string | null;
   meta_description: string | null;
-  average_rating: number;
+  average_rating: ApiDecimalRating;
   review_count: number;
 }
 

@@ -17,6 +17,7 @@ export const Role = {
   DEPARTMENT_MANAGER: "department-manager",
   PAYROLL_OFFICER: "payroll-officer",
   PAYROLL_MANAGER: "payroll-manager",
+  EXECUTIVE: "executive",
   EMPLOYEE: "employee",
   SUPPLIER_USER: "supplier-user",
   CUSTOMER: "customer",
@@ -41,6 +42,7 @@ export const ADMIN_PORTAL_ROLES: RoleSlug[] = [
   Role.DEPARTMENT_MANAGER,
   Role.PAYROLL_OFFICER,
   Role.PAYROLL_MANAGER,
+  Role.EXECUTIVE,
   Role.STAFF,
 ];
 
@@ -60,6 +62,7 @@ export const ROLE_LABELS: Record<RoleSlug, string> = {
   [Role.DEPARTMENT_MANAGER]: "Department Manager",
   [Role.PAYROLL_OFFICER]: "Payroll Officer",
   [Role.PAYROLL_MANAGER]: "Payroll Manager",
+  [Role.EXECUTIVE]: "Executive",
   [Role.EMPLOYEE]: "Employee",
   [Role.SUPPLIER_USER]: "Supplier User",
   [Role.TRADE_CUSTOMER]: "Trade Customer",

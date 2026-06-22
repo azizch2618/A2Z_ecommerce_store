@@ -195,6 +195,8 @@ _MANAGER_PERMS = frozenset({
     PermissionCodename.PAYROLL_MANAGE,
     PermissionCodename.PAYROLL_APPROVE,
     PermissionCodename.PAYROLL_POST,
+    PermissionCodename.WMS_VIEW,
+    PermissionCodename.WMS_MANAGE,
 })
 
 ROLE_PERMISSIONS: dict[str, frozenset[str]] = {

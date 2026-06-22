@@ -1,6 +1,8 @@
 import { apiDelete, apiGet, apiPatch, apiPost } from "../client";
 import { API_ENDPOINTS } from "../config";
 import { useAuthStore } from "../auth/auth-store";
+import { hasAuthTokens } from "../auth/token-storage";
+import { authDebug } from "@/lib/auth/auth-debug";
 import { getSessionKey } from "../session";
 import { mergeGuestCart } from "./cart.service";
 import type {
@@ -30,6 +32,12 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     data.tokens?.refresh ?? ""
   );
 
+  authDebug("login", "session marked after login", {
+    hasSessionCookie: hasAuthTokens(),
+    email: data.user.email,
+    roles: data.user.roles,
+  });
+
   const sessionKey = getSessionKey();
   if (sessionKey) {
     try {
@@ -37,6 +45,19 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     } catch {
       // Non-fatal — cart merge can fail if guest cart empty
     }
+  }
+
+  try {
+    const user = await fetchCurrentUser();
+    authDebug("login", "current user loaded", {
+      email: user.email,
+      roles: user.roles,
+      permissions: user.permissions?.length ?? 0,
+    });
+  } catch (error) {
+    authDebug("login", "current user fetch failed after login", {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 
   return data;
@@ -86,8 +107,13 @@ export async function logout(): Promise<void> {
 
 /** Fetch and cache current user profile */
 export async function fetchCurrentUser(): Promise<AuthMeResponse> {
+  authDebug("me", "fetching current user");
   const user = await apiGet<AuthMeResponse>(API_ENDPOINTS.auth.me);
   useAuthStore.getState().setUser(user);
+  authDebug("me", "current user stored", {
+    email: user.email,
+    roles: user.roles,
+  });
   return user;
 }
 

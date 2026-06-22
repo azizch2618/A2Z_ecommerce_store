@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -216,6 +217,30 @@ class OrderDetailView(generics.RetrieveAPIView):
         if not customer:
             return Order.objects.none()
         return OrderService.customer_orders_queryset(customer)
+
+
+class OrderInvoiceView(APIView):
+    """GET /orders/{id}/invoice/ — GST tax invoice PDF."""
+
+    permission_classes = [IsAuthenticated, IsOrderOwnerOrCanViewOrders]
+
+    def get(self, request, public_id):
+        from apps.orders.pdf_service import generate_order_invoice_pdf
+
+        if PermissionService.has_permission(request.user, PermissionCodename.ORDERS_VIEW):
+            order = OrderService.get_by_public_id(public_id)
+        else:
+            customer = CustomerService.get_for_user(request.user)
+            if not customer:
+                return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            order = OrderService.customer_orders_queryset(customer).filter(public_id=public_id).first()
+            if not order:
+                return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        pdf_bytes = generate_order_invoice_pdf(order)
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'inline; filename="{order.order_number}-invoice.pdf"'
+        return response
 
 
 class OrderTrackView(APIView):

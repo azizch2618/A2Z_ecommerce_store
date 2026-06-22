@@ -8,6 +8,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import CanManageCatalog, CanViewCatalog
+from apps.catalog.admin_product_service import (
+    admin_product_queryset,
+    create_admin_product,
+    delete_admin_product,
+    serialize_admin_product,
+    update_admin_product,
+)
 from apps.catalog.models import Brand, Category
 from apps.catalog.serializers import BrandSerializer, CategorySerializer
 from apps.core.audit import log_operation
@@ -255,5 +262,97 @@ class AdminBrandDetailView(APIView):
             action="deactivate",
             resource_type="brand",
             resource_id=brand.public_id,
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AdminProductListCreateView(generics.ListCreateAPIView):
+    """GET/POST /admin/products/"""
+
+    pagination_class = AdminPagination
+    filterset_fields: list[str] = []
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [CanManageCatalog()]
+        return [CanViewCatalog()]
+
+    def get_queryset(self):
+        qs = admin_product_queryset()
+        search = self.request.query_params.get("search", "").strip()
+        if search:
+            qs = qs.filter(
+                Q(name__icontains=search)
+                | Q(variants__sku__icontains=search)
+                | Q(brand__name__icontains=search)
+            ).distinct()
+        status_filter = self.request.query_params.get("status")
+        if status_filter == "active":
+            qs = qs.filter(is_active=True)
+        elif status_filter == "inactive":
+            qs = qs.filter(is_active=False)
+        return qs
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        rows = [serialize_admin_product(product) for product in (page or queryset)]
+        if page is not None:
+            return self.get_paginated_response(rows)
+        return Response({"data": rows})
+
+    def create(self, request, *args, **kwargs):
+        product = create_admin_product(request.data)
+        log_operation(
+            user=request.user,
+            module=OperationalAuditLog.Module.CATALOG,
+            action="create",
+            resource_type="product",
+            resource_id=product.public_id,
+            details={"name": product.name, "slug": product.slug},
+        )
+        return Response(serialize_admin_product(product), status=status.HTTP_201_CREATED)
+
+
+class AdminProductDetailView(APIView):
+    """GET/PATCH/DELETE /admin/products/{id}/"""
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [CanViewCatalog()]
+        return [CanManageCatalog()]
+
+    def _get_product(self, product_id):
+        product = admin_product_queryset().filter(public_id=product_id).first()
+        if not product:
+            raise NotFoundError("Product not found.")
+        return product
+
+    def get(self, request, product_id):
+        product = self._get_product(product_id)
+        return Response(serialize_admin_product(product))
+
+    def patch(self, request, product_id):
+        product = self._get_product(product_id)
+        product = update_admin_product(product, request.data)
+        log_operation(
+            user=request.user,
+            module=OperationalAuditLog.Module.CATALOG,
+            action="update",
+            resource_type="product",
+            resource_id=product.public_id,
+            details=request.data,
+        )
+        return Response(serialize_admin_product(product))
+
+    def delete(self, request, product_id):
+        product = self._get_product(product_id)
+        delete_admin_product(product)
+        log_operation(
+            user=request.user,
+            module=OperationalAuditLog.Module.CATALOG,
+            action="delete",
+            resource_type="product",
+            resource_id=product.public_id,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)

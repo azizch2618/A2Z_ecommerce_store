@@ -8,6 +8,13 @@ import type { TradeApplication } from "@/lib/api/admin/types";
 import { useUpdateTradeApplication } from "@/lib/api/admin/hooks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -29,6 +36,7 @@ export interface TradeApplicationsPanelProps {
 function TradeApplicationsPanel({ applications }: TradeApplicationsPanelProps) {
   const updateTrade = useUpdateTradeApplication();
   const [creditLimit, setCreditLimit] = useState<Record<string, string>>({});
+  const [selectedApplication, setSelectedApplication] = useState<TradeApplication | null>(null);
 
   const pending = applications.filter((a) => a.status === "pending");
   const approved = applications.filter((a) => a.status === "approved");
@@ -116,7 +124,13 @@ function TradeApplicationsPanel({ applications }: TradeApplicationsPanelProps) {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <Button variant="ghost" size="icon" className="size-8" aria-label="View details">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8"
+                    aria-label="View details"
+                    onClick={() => setSelectedApplication(app)}
+                  >
                     <Eye className="size-4" />
                   </Button>
                   {app.status === "pending" ? (
@@ -160,6 +174,45 @@ function TradeApplicationsPanel({ applications }: TradeApplicationsPanelProps) {
           ))}
         </TableBody>
       </Table>
+
+      <Dialog
+        open={selectedApplication !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedApplication(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Trade application</DialogTitle>
+            <DialogDescription>Application details and review status.</DialogDescription>
+          </DialogHeader>
+          {selectedApplication ? (
+            <dl className="grid gap-3 text-sm">
+              <div>
+                <dt className="text-muted-foreground">Company</dt>
+                <dd className="font-medium">{selectedApplication.companyName}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Contact</dt>
+                <dd className="font-medium">{selectedApplication.contactName}</dd>
+                <dd className="text-muted-foreground">{selectedApplication.email}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">ABN</dt>
+                <dd className="font-mono">{selectedApplication.abn}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Status</dt>
+                <dd className="capitalize">{selectedApplication.status}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Submitted</dt>
+                <dd>{formatDate(selectedApplication.submittedAt)}</dd>
+              </div>
+            </dl>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

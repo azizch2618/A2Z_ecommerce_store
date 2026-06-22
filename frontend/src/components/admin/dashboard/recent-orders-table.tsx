@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { MoreHorizontal, Package, Truck, CheckCircle, XCircle, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
@@ -165,7 +166,14 @@ function RecentOrdersTable({ orders, showActions = true }: RecentOrdersTableProp
         <TableBody>
           {filtered.map((order) => (
             <TableRow key={order.id}>
-              <TableCell className="font-mono text-sm font-medium">{order.orderNumber}</TableCell>
+              <TableCell className="font-mono text-sm font-medium">
+                <Link
+                  href={`/admin-dashboard/orders/${order.id}`}
+                  className="text-primary hover:underline"
+                >
+                  {order.orderNumber}
+                </Link>
+              </TableCell>
               <TableCell>
                 <p className="font-medium">{order.customerName}</p>
                 <p className="text-xs text-muted-foreground">{order.customerEmail}</p>

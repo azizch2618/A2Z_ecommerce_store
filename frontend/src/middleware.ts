@@ -6,6 +6,8 @@ import { isAdminDemoEnabled } from "@/lib/security/admin-demo";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const AUTH_DEBUG = process.env.NODE_ENV === "development";
+
 const PROTECTED_PREFIXES = ["/account", "/admin-dashboard", "/checkout"];
 
 export function middleware(request: NextRequest) {
@@ -21,6 +23,14 @@ export function middleware(request: NextRequest) {
   const hasSession =
     request.cookies.has(ACCESS_COOKIE_NAME) ||
     request.cookies.has(SESSION_COOKIE_NAME);
+
+  if (AUTH_DEBUG && isProtected) {
+    console.info("[auth:middleware]", {
+      pathname,
+      hasAccessCookie: request.cookies.has(ACCESS_COOKIE_NAME),
+      hasSessionCookie: request.cookies.has(SESSION_COOKIE_NAME),
+    });
+  }
 
   if (pathname.startsWith("/admin-dashboard") && isAdminDemoEnabled()) {
     return NextResponse.next();

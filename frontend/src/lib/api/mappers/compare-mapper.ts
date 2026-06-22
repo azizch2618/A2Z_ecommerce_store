@@ -1,4 +1,5 @@
 import type { ProductDetail } from "@/lib/api/types/product";
+import { parseProductRating } from "@/lib/format/rating";
 import type { CompareProduct } from "@/types/compare";
 
 function stockFromApi(status: string): CompareProduct["stock"] {
@@ -30,13 +31,13 @@ export function mapApiProductToCompareProduct(product: ProductDetail): ComparePr
     id: product.id,
     slug: product.slug,
     name: product.name,
-    brand: product.brand.name,
+    brand: product.brand?.name ?? "Unknown",
     sku: variant?.sku ?? "",
     priceIncGst: incCents / 100,
     tradePriceIncGst: variant?.price.is_trade_price
       ? incCents / 100
       : undefined,
-    rating: product.average_rating,
+    rating: parseProductRating(product.average_rating),
     reviewCount: product.review_count,
     stock: stockFromApi(variant?.stock.status ?? "in_stock"),
     imageSrc: image?.url ?? "",

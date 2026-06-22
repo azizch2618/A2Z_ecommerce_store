@@ -285,6 +285,7 @@ class CrmTimelineView(APIView):
             lead_id=_parse_uuid(request.query_params.get("leadId")),
             opportunity_id=_parse_uuid(request.query_params.get("opportunityId")),
             party_id=_parse_uuid(request.query_params.get("partyId")),
+            customer_id=_parse_uuid(request.query_params.get("customerId")),
             limit=int(request.query_params.get("limit", 50)),
         )
         return Response({"data": entries})

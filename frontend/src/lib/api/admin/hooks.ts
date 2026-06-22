@@ -7,7 +7,6 @@ import {
   fetchAdminCustomers,
   fetchAdminDashboard,
   fetchAdminOrders,
-  fetchAdminProducts,
   fetchRevenueByPeriod,
 } from "./api-service";
 import {
@@ -16,13 +15,17 @@ import {
   confirmPurchaseOrder,
   createAdminBrand,
   createAdminCategory,
+  createAdminProduct,
   createAdminSupplier,
   createAdminWarehouse,
   createPurchaseOrder,
+  deleteAdminProduct,
   deliverOrder,
   exportAdminReport,
   fetchAdminBrands,
   fetchAdminCategories,
+  fetchAdminProduct,
+  fetchAdminProductsList,
   fetchAdminReports,
   fetchAdminSuppliersList,
   fetchAdminWarehousesList,
@@ -36,12 +39,14 @@ import {
   submitPurchaseOrder,
   updateAdminBrand,
   updateAdminCategory,
+  updateAdminProduct,
   updateAdminSupplier,
   updateAdminWarehouse,
 } from "./operational-service";
 import type {
   AdminBrand,
   AdminCategory,
+  AdminProductWritePayload,
   AdminPurchaseOrder,
   AdminWarehouse,
   CompanySettings,
@@ -61,12 +66,22 @@ import type {
   StockTransferPayload,
   TradeStatus,
 } from "./types";
+import {
+  fetchCompanySettings,
+  fetchEmailSettings,
+  fetchGstSettings,
+  fetchPaymentSettings,
+  fetchShippingSettings,
+} from "./settings-service";
+import { fetchAdminCustomerDetail } from "./customer-service";
+import { fetchAdminOrderDetail } from "./order-service";
 import { throwAdminApiUnavailable } from "./admin-api-unavailable";
 
 export const adminQueryKeys = {
   all: ["admin"] as const,
   dashboard: () => [...adminQueryKeys.all, "dashboard"] as const,
-  products: () => [...adminQueryKeys.all, "products"] as const,
+  products: (params?: object) => [...adminQueryKeys.all, "products", params ?? {}] as const,
+  product: (id: string) => [...adminQueryKeys.all, "products", id] as const,
   categories: (params?: object) => [...adminQueryKeys.all, "categories", params ?? {}] as const,
   brands: (params?: object) => [...adminQueryKeys.all, "brands", params ?? {}] as const,
   inventory: () => [...adminQueryKeys.all, "inventory"] as const,
@@ -76,7 +91,9 @@ export const adminQueryKeys = {
     [...adminQueryKeys.all, "purchase-orders", params ?? {}] as const,
   warehouses: (params?: object) => [...adminQueryKeys.all, "warehouses", params ?? {}] as const,
   orders: () => [...adminQueryKeys.all, "orders"] as const,
+  order: (id: string) => [...adminQueryKeys.all, "orders", id] as const,
   customers: () => [...adminQueryKeys.all, "customers"] as const,
+  customer: (id: string) => [...adminQueryKeys.all, "customers", id] as const,
   tradeApplications: (params?: object) =>
     [...adminQueryKeys.all, "trade-applications", params ?? {}] as const,
   suppliers: (params?: object) => [...adminQueryKeys.all, "suppliers", params ?? {}] as const,
@@ -101,14 +118,57 @@ export function useAdminDashboard() {
   );
 }
 
-export function useAdminProducts() {
+export function useAdminProducts(params?: { search?: string; status?: string }) {
   return useQuery(
     createAdminLiveQueryOptions(
       "products",
-      adminQueryKeys.products(),
-      fetchAdminProducts
+      adminQueryKeys.products(params),
+      () => fetchAdminProductsList(params)
     )
   );
+}
+
+export function useAdminProduct(id: string | null) {
+  return useQuery({
+    ...createAdminLiveQueryOptions(
+      "products",
+      adminQueryKeys.product(id ?? "unknown"),
+      () => fetchAdminProduct(id!)
+    ),
+    enabled: Boolean(id),
+  });
+}
+
+export function useCreateProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: createAdminProduct,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminQueryKeys.all, "products"] });
+    },
+  });
+}
+
+export function useUpdateProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...payload }: AdminProductWritePayload & { id: string }) =>
+      updateAdminProduct(id, payload),
+    onSuccess: (_data, variables) => {
+      void qc.invalidateQueries({ queryKey: [...adminQueryKeys.all, "products"] });
+      void qc.invalidateQueries({ queryKey: adminQueryKeys.product(variables.id) });
+    },
+  });
+}
+
+export function useDeleteProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: deleteAdminProduct,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...adminQueryKeys.all, "products"] });
+    },
+  });
 }
 
 export function useAdminCategories(params?: { search?: string; status?: string }) {
@@ -358,13 +418,29 @@ export function useAdminOrders() {
   );
 }
 
+export function useAdminOrderDetail(id: string) {
+  return useQuery({
+    ...createAdminLiveQueryOptions(
+      "orders",
+      adminQueryKeys.order(id),
+      () => fetchAdminOrderDetail(id)
+    ),
+    enabled: Boolean(id),
+  });
+}
+
+function invalidateOrderQueries(qc: ReturnType<typeof useQueryClient>, orderId: string) {
+  void qc.invalidateQueries({ queryKey: adminQueryKeys.orders() });
+  void qc.invalidateQueries({ queryKey: adminQueryKeys.order(orderId) });
+  void qc.invalidateQueries({ queryKey: adminQueryKeys.dashboard() });
+}
+
 export function useOrderPack() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: packOrder,
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: adminQueryKeys.orders() });
-      void qc.invalidateQueries({ queryKey: adminQueryKeys.dashboard() });
+    onSuccess: (_data, orderId) => {
+      invalidateOrderQueries(qc, orderId);
     },
   });
 }
@@ -374,9 +450,8 @@ export function useOrderShip() {
   return useMutation({
     mutationFn: ({ orderId, carrier }: { orderId: string; carrier?: string }) =>
       shipOrder(orderId, { carrier }),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: adminQueryKeys.orders() });
-      void qc.invalidateQueries({ queryKey: adminQueryKeys.dashboard() });
+    onSuccess: (_data, variables) => {
+      invalidateOrderQueries(qc, variables.orderId);
     },
   });
 }
@@ -385,9 +460,8 @@ export function useOrderDeliver() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: deliverOrder,
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: adminQueryKeys.orders() });
-      void qc.invalidateQueries({ queryKey: adminQueryKeys.dashboard() });
+    onSuccess: (_data, orderId) => {
+      invalidateOrderQueries(qc, orderId);
     },
   });
 }
@@ -397,9 +471,8 @@ export function useOrderCancel() {
   return useMutation({
     mutationFn: ({ orderId, reason }: { orderId: string; reason?: string }) =>
       cancelOrder(orderId, reason),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: adminQueryKeys.orders() });
-      void qc.invalidateQueries({ queryKey: adminQueryKeys.dashboard() });
+    onSuccess: (_data, variables) => {
+      invalidateOrderQueries(qc, variables.orderId);
     },
   });
 }
@@ -409,9 +482,8 @@ export function useOrderRefund() {
   return useMutation({
     mutationFn: ({ orderId, reason }: { orderId: string; reason?: string }) =>
       refundOrder(orderId, reason),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: adminQueryKeys.orders() });
-      void qc.invalidateQueries({ queryKey: adminQueryKeys.dashboard() });
+    onSuccess: (_data, variables) => {
+      invalidateOrderQueries(qc, variables.orderId);
     },
   });
 }
@@ -424,6 +496,17 @@ export function useAdminCustomers() {
       fetchAdminCustomers
     )
   );
+}
+
+export function useAdminCustomerDetail(id: string) {
+  return useQuery({
+    ...createAdminLiveQueryOptions(
+      "customers",
+      adminQueryKeys.customer(id),
+      () => fetchAdminCustomerDetail(id)
+    ),
+    enabled: Boolean(id),
+  });
 }
 
 export function useAdminTradeApplications(params?: { status?: string }) {
@@ -499,7 +582,7 @@ export function useCompanySettings() {
     createAdminLiveQueryOptions<CompanySettings>(
       "settings/company",
       adminQueryKeys.settings.company(),
-      () => throwAdminApiUnavailable("company settings")
+      fetchCompanySettings
     )
   );
 }
@@ -509,7 +592,7 @@ export function useGstSettings() {
     createAdminLiveQueryOptions<GstSettings>(
       "settings/gst",
       adminQueryKeys.settings.gst(),
-      () => throwAdminApiUnavailable("GST settings")
+      fetchGstSettings
     )
   );
 }
@@ -519,7 +602,7 @@ export function useShippingSettings() {
     createAdminLiveQueryOptions<ShippingSettings>(
       "settings/shipping",
       adminQueryKeys.settings.shipping(),
-      () => throwAdminApiUnavailable("shipping settings")
+      fetchShippingSettings
     )
   );
 }
@@ -529,7 +612,7 @@ export function useEmailSettings() {
     createAdminLiveQueryOptions<EmailSettings>(
       "settings/email",
       adminQueryKeys.settings.email(),
-      () => throwAdminApiUnavailable("email settings")
+      fetchEmailSettings
     )
   );
 }
@@ -539,7 +622,7 @@ export function usePaymentSettings() {
     createAdminLiveQueryOptions<PaymentGatewaySettings>(
       "settings/payment",
       adminQueryKeys.settings.payment(),
-      () => throwAdminApiUnavailable("payment settings")
+      fetchPaymentSettings
     )
   );
 }

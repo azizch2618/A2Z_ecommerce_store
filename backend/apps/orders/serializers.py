@@ -276,6 +276,7 @@ class OrderSummarySerializer(serializers.ModelSerializer):
 
 
 class OrderDetailSerializer(OrderSummarySerializer):
+    customer_id = serializers.SerializerMethodField()
     items = OrderLineItemSerializer(many=True, read_only=True)
     totals = serializers.SerializerMethodField()
     billing_address = serializers.JSONField(read_only=True)
@@ -286,6 +287,7 @@ class OrderDetailSerializer(OrderSummarySerializer):
 
     class Meta(OrderSummarySerializer.Meta):
         fields = OrderSummarySerializer.Meta.fields + (
+            "customer_id",
             "items",
             "totals",
             "billing_address",
@@ -295,7 +297,15 @@ class OrderDetailSerializer(OrderSummarySerializer):
             "shipments",
             "po_number",
             "customer_notes",
+            "paid_at",
+            "packed_at",
+            "shipped_at",
+            "delivered_at",
+            "cancelled_at",
         )
+
+    def get_customer_id(self, obj: Order) -> str:
+        return str(obj.customer.public_id)
 
     def get_totals(self, obj: Order) -> dict:
         from apps.orders.services import OrderService

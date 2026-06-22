@@ -700,6 +700,61 @@ class Command(BaseCommand):
             key="platform.version",
             defaults={"value": {"version": "1.0.0"}, "description": "ERP foundation version"},
         )
+        PlatformSetting.objects.update_or_create(
+            company=company,
+            key="gst",
+            defaults={
+                "value": {
+                    "rate": 0.1,
+                    "display_prices_inc_gst": True,
+                    "tax_invoice_prefix": "INV",
+                },
+                "description": "Australian GST configuration",
+            },
+        )
+        PlatformSetting.objects.update_or_create(
+            company=company,
+            key="shipping",
+            defaults={
+                "value": {
+                    "free_shipping_threshold_cents": 15000,
+                    "default_carrier": "Australia Post",
+                    "standard_rate_cents": 1295,
+                },
+                "description": "Default shipping configuration",
+            },
+        )
+        PlatformSetting.objects.update_or_create(
+            company=company,
+            key="email",
+            defaults={
+                "value": {
+                    "from_name": "A2Z Tools",
+                    "from_email": "noreply@a2ztools.com.au",
+                    "order_confirmation": True,
+                    "shipping_notification": True,
+                },
+                "description": "Transactional email defaults",
+            },
+        )
+        PlatformSetting.objects.update_or_create(
+            company=company,
+            key="payment",
+            defaults={
+                "value": {
+                    "provider": "stripe",
+                    "mode": "test",
+                    "enabled_methods": ["card", "paypal", "trade_credit"],
+                },
+                "description": "Payment gateway configuration",
+            },
+        )
+        if not company.metadata.get("address"):
+            company.metadata = {
+                **company.metadata,
+                "address": "Sydney, NSW, Australia",
+            }
+            company.save(update_fields=["metadata", "updated_at"])
 
         self.stdout.write(
             self.style.SUCCESS(

@@ -3,6 +3,7 @@
 export const Permission = {
   DASHBOARD_VIEW: "dashboard.view",
   ANALYTICS_VIEW: "analytics.view",
+  ANALYTICS_MANAGE: "analytics.manage",
   REPORTS_VIEW: "reports.view",
   REPORTS_EXPORT: "reports.export",
   CATALOG_VIEW: "catalog.view",

@@ -33,14 +33,39 @@ env:
 jobs:
   ci-gate:
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
     steps:
-      - name: CI gate placeholder
-        run: |
-          echo "Ensure ci-backend and ci-frontend passed on this ref before production deploy."
-          echo "Configure branch protection: require CI checks on main."
+      - name: Require CI checks on deployed ref
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ref = context.payload.inputs?.git_ref || context.sha;
+            const { owner, repo } = context.repo;
+            const checks = ['CI — Backend', 'CI — Frontend', 'Security'];
+            const res = await github.rest.repos.getCombinedStatusForRef({
+              owner, repo, ref
+            });
+            const failed = res.data.statuses.filter(
+              s => checks.some(c => s.context.includes(c.split(' ').pop())) && s.state === 'failure'
+            );
+            if (failed.length) {
+              core.setFailed(`CI checks failed on ${ref}: ${failed.map(f => f.context).join(', ')}`);
+            }
+            core.info(`Combined status for ${ref}: ${res.data.state}`);
+            core.info('Configure branch protection to require CI — Backend, CI — Frontend, and Security on main.');
+    permissions:
+      contents: read
+      statuses: read
+
+  ci-gate-staging:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.environment != 'production'
+    steps:
+      - run: echo "Staging deploy — CI gate advisory only. Enable branch protection for production."
 
   build-and-push:
-    needs: ci-gate
+    needs: [ci-gate, ci-gate-staging]
+    if: always() && (needs.ci-gate.result == 'success' || needs.ci-gate.result == 'skipped') && (needs.ci-gate-staging.result == 'success' || needs.ci-gate-staging.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: read

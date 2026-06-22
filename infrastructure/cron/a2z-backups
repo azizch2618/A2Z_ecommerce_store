@@ -1,0 +1,18 @@
+# A2Z Tools — scheduled backups (install on origin host)
+# Install: sudo cp infrastructure/cron/a2z-backups /etc/cron.d/a2z-backups
+# Ensure scripts are executable and .env is sourced from /opt/a2z-tools
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Daily PostgreSQL backup at 02:15 Sydney time (UTC+10/+11 — adjust if host is UTC)
+15 2 * * * deploy cd /opt/a2z-tools && set -a && source .env && set +a && ./infrastructure/scripts/backup-postgres.sh >> /var/log/a2z-backup.log 2>&1
+
+# Daily Redis RDB at 02:30
+30 2 * * * deploy cd /opt/a2z-tools && set -a && source .env && set +a && ./infrastructure/scripts/backup-redis.sh >> /var/log/a2z-backup.log 2>&1
+
+# Weekly media backup (Sunday 03:00)
+0 3 * * 0 deploy cd /opt/a2z-tools && set -a && source .env && set +a && ./infrastructure/scripts/backup-media.sh >> /var/log/a2z-backup.log 2>&1
+
+# Weekly backup verification (Sunday 04:00)
+0 4 * * 0 deploy cd /opt/a2z-tools && set -a && source .env && set +a && ./infrastructure/scripts/verify-backup-restore.sh --check-latest >> /var/log/a2z-backup.log 2>&1

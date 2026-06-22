@@ -101,6 +101,16 @@ class ErpFoundationTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["code"], "A2Z")
 
+    def test_platform_settings_api(self):
+        self.client.force_authenticate(self.admin)
+        response = self.client.get("/api/v1/platform/settings/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        keys = {row["key"] for row in response.data["data"]}
+        self.assertIn("gst", keys)
+        self.assertIn("shipping", keys)
+        self.assertIn("email", keys)
+        self.assertIn("payment", keys)
+
     def test_platform_audit_api(self):
         DomainEventPublisher.publish(
             event_type=DomainEventType.TRADE_APPROVED,

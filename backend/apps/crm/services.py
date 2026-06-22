@@ -461,7 +461,10 @@ class CrmActivityService:
         lead_id: UUID | None = None,
         opportunity_id: UUID | None = None,
         party_id: UUID | None = None,
+        customer_id: UUID | None = None,
     ) -> QuerySet[CrmActivity]:
+        from django.db.models import Q
+
         qs = CrmActivity.objects.select_related("assigned_to", "created_by", "lead", "opportunity")
         if lead_id:
             qs = qs.filter(lead__public_id=lead_id)
@@ -469,6 +472,12 @@ class CrmActivityService:
             qs = qs.filter(opportunity__public_id=opportunity_id)
         if party_id:
             qs = qs.filter(party__public_id=party_id)
+        if customer_id:
+            qs = qs.filter(
+                Q(party__customer__public_id=customer_id)
+                | Q(lead__customer__public_id=customer_id)
+                | Q(opportunity__customer__public_id=customer_id)
+            )
         return qs.order_by("-created_at")
 
     @classmethod
@@ -537,14 +546,18 @@ class CrmTimelineService:
         lead_id: UUID | None = None,
         opportunity_id: UUID | None = None,
         party_id: UUID | None = None,
+        customer_id: UUID | None = None,
         limit: int = 50,
     ) -> list[dict[str, Any]]:
+        from django.db.models import Q
+
         entries: list[dict[str, Any]] = []
 
         for activity in CrmActivityService.list_activities(
             lead_id=lead_id,
             opportunity_id=opportunity_id,
             party_id=party_id,
+            customer_id=customer_id,
         )[:limit]:
             entries.append(
                 {
@@ -565,6 +578,12 @@ class CrmTimelineService:
             notes = notes.filter(opportunity__public_id=opportunity_id)
         if party_id:
             notes = notes.filter(party__public_id=party_id)
+        if customer_id:
+            notes = notes.filter(
+                Q(party__customer__public_id=customer_id)
+                | Q(lead__customer__public_id=customer_id)
+                | Q(opportunity__customer__public_id=customer_id)
+            )
 
         for note in notes.order_by("-created_at")[:limit]:
             entries.append(

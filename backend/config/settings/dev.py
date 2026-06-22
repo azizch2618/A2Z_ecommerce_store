@@ -23,4 +23,9 @@ REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [  # noqa: F405
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+# Frontend (:3000) and API (:8000) are different sites in local dev; SameSite=Lax
+# HttpOnly cookies are not sent on cross-origin XHR. Return JWTs in the response body
+# so the browser client can use Authorization: Bearer headers.
+JWT_AUTH_COOKIE_ONLY = False
+
 DEMO_AUTO_COMPLETE_PAYMENTS = True

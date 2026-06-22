@@ -55,6 +55,13 @@ function SettingsPageView() {
     email.isLoading ||
     payment.isLoading;
 
+  const hasError =
+    company.isError ||
+    gst.isError ||
+    shipping.isError ||
+    email.isError ||
+    payment.isError;
+
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
@@ -67,7 +74,8 @@ function SettingsPageView() {
     <AdminListPage
       title="Settings"
       description="Company, GST, shipping, email, and payment gateway configuration."
-      actions={<Button size="sm">Save changes</Button>}
+      isError={hasError}
+      actions={<Button size="sm" disabled>Save changes</Button>}
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <AdminCard title="Company information">

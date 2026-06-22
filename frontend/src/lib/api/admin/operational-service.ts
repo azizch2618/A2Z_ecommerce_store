@@ -3,6 +3,8 @@ import { API_ENDPOINTS } from "../config";
 import type {
   AdminBrand,
   AdminCategory,
+  AdminProduct,
+  AdminProductWritePayload,
   AdminPurchaseOrder,
   AdminSupplier,
   AdminWarehouse,
@@ -46,6 +48,69 @@ function mapBrand(row: {
     slug: row.slug,
     productCount: row.product_count ?? 0,
     featured: Boolean(row.is_authorized_reseller),
+  };
+}
+
+function mapProduct(row: {
+  id: string;
+  name: string;
+  slug?: string;
+  sku: string;
+  brand_id?: string | null;
+  brand?: string;
+  category_id?: string | null;
+  category?: string;
+  sell_price_ex_gst_cents?: number;
+  cost_price_cents?: number;
+  gst_rate?: string;
+  gst_cents?: number;
+  sell_price_inc_gst_cents?: number;
+  stock?: number;
+  is_active?: boolean;
+  status?: string;
+  short_description?: string;
+  description?: string;
+  images?: Array<{
+    url: string;
+    alt_text?: string;
+    sort_order?: number;
+    is_primary?: boolean;
+  }>;
+}): AdminProduct {
+  const sellPriceExGstCents = row.sell_price_ex_gst_cents ?? 0;
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug ?? "",
+    sku: row.sku,
+    brandId: row.brand_id ?? null,
+    brand: row.brand ?? "",
+    categoryId: row.category_id ?? null,
+    category: row.category ?? "",
+    sellPriceExGstCents,
+    costPriceCents: row.cost_price_cents ?? 0,
+    gstRate: row.gst_rate ?? "0.1",
+    gstCents: row.gst_cents ?? 0,
+    sellPriceIncGstCents: row.sell_price_inc_gst_cents ?? sellPriceExGstCents,
+    priceCents: sellPriceExGstCents,
+    stock: row.stock ?? 0,
+    isActive: row.is_active ?? row.status === "active",
+    status:
+      row.status === "inactive"
+        ? "inactive"
+        : row.status === "active"
+          ? "active"
+          : row.is_active === false
+            ? "inactive"
+            : "active",
+    shortDescription: row.short_description ?? "",
+    description: row.description ?? "",
+    images: (row.images ?? []).map((image, index) => ({
+      url: image.url,
+      altText: image.alt_text ?? "",
+      sortOrder: image.sort_order ?? index,
+      isPrimary: Boolean(image.is_primary),
+    })),
   };
 }
 
@@ -197,6 +262,43 @@ export async function updateAdminBrand(
 ): Promise<AdminBrand> {
   const row = await apiPatch<Record<string, unknown>>(API_ENDPOINTS.admin.brand(id), payload);
   return mapBrand(row as Parameters<typeof mapBrand>[0]);
+}
+
+export async function fetchAdminProductsList(params?: {
+  search?: string;
+  status?: string;
+}): Promise<AdminProduct[]> {
+  const response = await apiGet<Paginated<Record<string, unknown>>>(
+    API_ENDPOINTS.admin.products,
+    { params: { ...params, limit: 100 } }
+  );
+  return response.data.map((row) =>
+    mapProduct(row as Parameters<typeof mapProduct>[0])
+  );
+}
+
+export async function fetchAdminProduct(id: string): Promise<AdminProduct> {
+  const row = await apiGet<Record<string, unknown>>(API_ENDPOINTS.admin.product(id));
+  return mapProduct(row as Parameters<typeof mapProduct>[0]);
+}
+
+export async function createAdminProduct(
+  payload: AdminProductWritePayload
+): Promise<AdminProduct> {
+  const row = await apiPost<Record<string, unknown>>(API_ENDPOINTS.admin.products, payload);
+  return mapProduct(row as Parameters<typeof mapProduct>[0]);
+}
+
+export async function updateAdminProduct(
+  id: string,
+  payload: Partial<AdminProductWritePayload>
+): Promise<AdminProduct> {
+  const row = await apiPatch<Record<string, unknown>>(API_ENDPOINTS.admin.product(id), payload);
+  return mapProduct(row as Parameters<typeof mapProduct>[0]);
+}
+
+export async function deleteAdminProduct(id: string): Promise<void> {
+  await apiDelete(API_ENDPOINTS.admin.product(id));
 }
 
 export async function fetchAdminSuppliersList(params?: {

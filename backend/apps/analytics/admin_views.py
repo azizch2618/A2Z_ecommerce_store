@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import CanViewCatalog, CanViewCustomers, CanViewDashboard
+from apps.analytics.customer_detail import build_admin_customer_detail
 from apps.analytics.dashboard import get_cached_dashboard_payload
 from apps.customers.models import Customer
 from apps.catalog.models import Product
@@ -80,3 +81,10 @@ class AdminProductListView(APIView):
                 }
             )
         return Response({"data": rows})
+
+
+class AdminCustomerDetailView(APIView):
+    permission_classes = [IsAuthenticated, CanViewCustomers]
+
+    def get(self, request, customer_id):
+        return Response(build_admin_customer_detail(customer_id))

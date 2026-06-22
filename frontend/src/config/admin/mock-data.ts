@@ -150,12 +150,33 @@ export const mockDashboardData: AdminDashboardData = {
   ],
 };
 
+function mockAdminProduct(
+  row: Pick<AdminProduct, "id" | "name" | "sku" | "brand" | "category" | "priceCents" | "stock" | "status">
+): AdminProduct {
+  const gstCents = Math.round(row.priceCents * 0.1);
+  return {
+    ...row,
+    slug: row.sku.toLowerCase(),
+    brandId: null,
+    categoryId: null,
+    sellPriceExGstCents: row.priceCents,
+    costPriceCents: Math.round(row.priceCents * 0.7),
+    gstRate: "0.1",
+    gstCents,
+    sellPriceIncGstCents: row.priceCents + gstCents,
+    isActive: row.status === "active",
+    shortDescription: "",
+    description: "",
+    images: [],
+  };
+}
+
 export const mockProducts: AdminProduct[] = [
-  { id: "1", name: "Cat6 UTP Cable 305m", sku: "NET-CAT6-305", brand: "Panduit", category: "Cabling", priceCents: 19900, stock: 8, status: "active" },
-  { id: "2", name: "24-Port PoE+ Switch", sku: "SW-24POE", brand: "Ubiquiti", category: "Networking", priceCents: 119900, stock: 42, status: "active" },
-  { id: "3", name: "Impact Driver Kit", sku: "DRL-IMP-01", brand: "DeWalt", category: "Power Tools", priceCents: 24900, stock: 3, status: "active" },
-  { id: "4", name: "UniFi AP WiFi 6", sku: "UAP-6-PRO", brand: "Ubiquiti", category: "Networking", priceCents: 44900, stock: 28, status: "active" },
-  { id: "5", name: "48-Port Managed Switch", sku: "SW-48-MGD", brand: "Cisco", category: "Networking", priceCents: 289900, stock: 0, status: "active" },
+  mockAdminProduct({ id: "1", name: "Cat6 UTP Cable 305m", sku: "NET-CAT6-305", brand: "Panduit", category: "Cabling", priceCents: 19900, stock: 8, status: "active" }),
+  mockAdminProduct({ id: "2", name: "24-Port PoE+ Switch", sku: "SW-24POE", brand: "Ubiquiti", category: "Networking", priceCents: 119900, stock: 42, status: "active" }),
+  mockAdminProduct({ id: "3", name: "Impact Driver Kit", sku: "DRL-IMP-01", brand: "DeWalt", category: "Power Tools", priceCents: 24900, stock: 3, status: "active" }),
+  mockAdminProduct({ id: "4", name: "UniFi AP WiFi 6", sku: "UAP-6-PRO", brand: "Ubiquiti", category: "Networking", priceCents: 44900, stock: 28, status: "active" }),
+  mockAdminProduct({ id: "5", name: "48-Port Managed Switch", sku: "SW-48-MGD", brand: "Cisco", category: "Networking", priceCents: 289900, stock: 0, status: "active" }),
 ];
 
 export const mockCategories: AdminCategory[] = [

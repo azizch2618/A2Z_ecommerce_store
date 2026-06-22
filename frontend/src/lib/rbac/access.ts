@@ -15,6 +15,7 @@ export const ADMIN_ROUTE_PERMISSIONS: Record<string, PermissionCodename> = {
   "/admin-dashboard/suppliers": Permission.SUPPLIERS_VIEW,
   "/admin-dashboard/reports": Permission.REPORTS_VIEW,
   "/admin-dashboard/analytics": Permission.ANALYTICS_VIEW,
+  "/admin-dashboard/executive-bi": Permission.ANALYTICS_VIEW,
   "/admin-dashboard/crm": Permission.CRM_VIEW,
   "/admin-dashboard/quotes": Permission.QUOTES_VIEW,
   "/admin-dashboard/procurement": Permission.PROCUREMENT_VIEW,
@@ -117,6 +118,7 @@ export function canAccessAdminPortal(
       "procurement-officer",
       "procurement-manager",
       "warehouse-operator",
+      "executive",
       "staff",
     ])
   );

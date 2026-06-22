@@ -85,11 +85,8 @@ export async function fetchAdminCustomers(): Promise<AdminCustomer[]> {
 }
 
 export async function fetchAdminProducts(): Promise<AdminProduct[]> {
-  requireAuth();
-  const response = await apiGet<{ data: AdminProduct[] }>(
-    API_ENDPOINTS.admin.products
-  );
-  return response.data;
+  const { fetchAdminProductsList } = await import("./operational-service");
+  return fetchAdminProductsList();
 }
 
 export async function fetchAdminTradeApplications(): Promise<TradeApplication[]> {

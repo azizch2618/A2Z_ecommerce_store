@@ -34,6 +34,10 @@ if [[ "${NEXT_PUBLIC_ADMIN_DEMO:-false}" == "true" ]]; then
   exit 1
 fi
 
+echo "==> Validating production environment"
+chmod +x infrastructure/scripts/validate-production-env.sh
+./infrastructure/scripts/validate-production-env.sh .env
+
 echo "==> Fetching ${GIT_REF}"
 git fetch origin
 git checkout "${GIT_REF}"

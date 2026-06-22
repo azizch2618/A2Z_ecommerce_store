@@ -1,6 +1,8 @@
 """Quote & sales workflow API views."""
 from __future__ import annotations
 
+from uuid import UUID
+
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -12,6 +14,12 @@ from apps.quotes.pdf_service import generate_quote_pdf
 from apps.quotes.permissions import CanApproveQuotes, CanManageQuotes, CanViewQuotes
 from apps.quotes.serializers import serialize_quote
 from apps.quotes.services import QuoteService
+
+
+def _parse_uuid(value: str | None) -> UUID | None:
+    if not value:
+        return None
+    return UUID(str(value))
 
 
 class IsAuthenticatedCustomer(IsAuthenticated):
@@ -49,6 +57,7 @@ class QuoteListCreateView(APIView):
         qs = QuoteService.list_quotes(
             status=request.query_params.get("status"),
             search=request.query_params.get("search"),
+            customer_id=_parse_uuid(request.query_params.get("customerId")),
         )
         return Response({"data": [serialize_quote(q) for q in qs[:200]]})
 

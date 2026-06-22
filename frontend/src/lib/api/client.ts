@@ -5,7 +5,13 @@ import axios, {
 } from "axios";
 
 import { useAuthStore } from "./auth/auth-store";
-import { clearTokens } from "./auth/token-storage";
+import {
+  clearTokens,
+  getAccessToken,
+  getRefreshToken,
+  setTokens,
+} from "./auth/token-storage";
+import { authDebug } from "@/lib/auth/auth-debug";
 import { API_BASE_URL, API_DEFAULTS, API_ENDPOINTS } from "./config";
 import { parseApiError } from "./errors";
 import { getOrCreateSessionKey } from "./session";
@@ -19,9 +25,10 @@ let refreshPromise: Promise<boolean> | null = null;
 
 async function refreshAccessToken(): Promise<boolean> {
   try {
-    await axios.post<RefreshTokenResponse>(
+    const refresh = getRefreshToken();
+    const { data } = await axios.post<RefreshTokenResponse>(
       `${API_BASE_URL}${API_ENDPOINTS.auth.refresh}`,
-      {},
+      refresh ? { refresh } : {},
       {
         headers: {
           Accept: "application/json",
@@ -32,8 +39,15 @@ async function refreshAccessToken(): Promise<boolean> {
         withCredentials: true,
       }
     );
+    if (data.access) {
+      setTokens({
+        access: data.access,
+        refresh: data.refresh ?? refresh ?? "",
+      });
+    }
     return true;
   } catch {
+    authDebug("refresh", "token refresh failed — clearing session");
     clearTokens();
     useAuthStore.getState().logout();
     return false;
@@ -65,6 +79,11 @@ export const apiClient: AxiosInstance = axios.create({
 });
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const accessToken = getAccessToken();
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+
   const includeSessionKey =
     !config.skipSessionKey && typeof window !== "undefined";
 

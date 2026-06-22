@@ -272,6 +272,17 @@ class StaffOrderAPITestCase(APITestCase):
         self.client.force_authenticate(self.cs_user)
         po_id = self.order.public_id
 
+        detail = self.client.get(reverse("orders:order-detail", kwargs={"public_id": po_id}))
+        self.assertEqual(detail.status_code, status.HTTP_200_OK)
+        self.assertEqual(detail.data["order_number"], self.order.order_number)
+        self.assertIn("customer_id", detail.data)
+        self.assertIn("items", detail.data)
+        self.assertIn("totals", detail.data)
+
+        invoice = self.client.get(reverse("orders:order-invoice", kwargs={"public_id": po_id}))
+        self.assertEqual(invoice.status_code, status.HTTP_200_OK)
+        self.assertEqual(invoice["Content-Type"], "application/pdf")
+
         pack = self.client.post(reverse("orders:order-pack", kwargs={"public_id": po_id}))
         self.assertEqual(pack.status_code, status.HTTP_200_OK)
         self.assertEqual(pack.data["status"], "packed")

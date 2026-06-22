@@ -7,6 +7,7 @@ from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
+from corsheaders.defaults import default_headers
 
 load_dotenv()
 
@@ -202,20 +203,30 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
+# Local dev storefront origins (ports 3000/3001, localhost + 127.0.0.1 for Windows IPv4/IPv6)
+_DEFAULT_DEV_ORIGINS = (
+    "http://localhost:3000,http://127.0.0.1:3000,"
+    "http://localhost:3001,http://127.0.0.1:3001"
+)
+
 # CORS — credentials required for HttpOnly JWT cookies
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get(
-        "DJANGO_CORS_ALLOWED_ORIGINS", "http://localhost:3000"
+        "DJANGO_CORS_ALLOWED_ORIGINS", _DEFAULT_DEV_ORIGINS
     ).split(",")
     if origin.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-request-id",
+    "x-session-key",
+]
 
 # CSRF trusted origins (required for cookie auth from browser clients)
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
-    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "http://localhost:3000").split(",")
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", _DEFAULT_DEV_ORIGINS).split(",")
     if origin.strip()
 ]
 

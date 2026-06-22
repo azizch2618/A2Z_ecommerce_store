@@ -3,8 +3,9 @@
  * Aligns with Django REST Framework `/api/v1` namespace.
  */
 
+/** Normalised base URL without trailing slash */
 const rawBaseUrl =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api/v1";
 
 /** Normalised base URL without trailing slash */
 export const API_BASE_URL = rawBaseUrl.replace(/\/$/, "");
@@ -94,13 +95,31 @@ export const API_ENDPOINTS = {
   admin: {
     dashboard: "/analytics/admin/dashboard/",
     customers: "/analytics/admin/customers/",
-    products: "/analytics/admin/products/",
-    categories: "/catalog/admin/categories/",
-    category: (id: string) => `/catalog/admin/categories/${id}/`,
-    brands: "/catalog/admin/brands/",
-    brand: (id: string) => `/catalog/admin/brands/${id}/`,
+    customer: (id: string) => `/analytics/admin/customers/${id}/`,
+    products: "/admin/products/",
+    product: (id: string) => `/admin/products/${id}/`,
+    productsLegacy: "/analytics/admin/products/",
+    categories: "/admin/categories/",
+    category: (id: string) => `/admin/categories/${id}/`,
+    brands: "/admin/brands/",
+    brand: (id: string) => `/admin/brands/${id}/`,
     reports: "/analytics/admin/reports/",
     reportsExport: "/analytics/admin/reports/export/",
+    bi: {
+      executive: "/analytics/admin/bi/executive/",
+      sales: "/analytics/admin/bi/sales/",
+      inventory: "/analytics/admin/bi/inventory/",
+      procurement: "/analytics/admin/bi/procurement/",
+      finance: "/analytics/admin/bi/finance/",
+      hr: "/analytics/admin/bi/hr/",
+      snapshot: "/analytics/admin/bi/snapshot/",
+      kpis: "/analytics/admin/bi/kpis/",
+      kpisEvaluate: "/analytics/admin/bi/kpis/evaluate/",
+      kpi: (id: string) => `/analytics/admin/bi/kpis/${id}/`,
+      reports: "/analytics/admin/bi/reports/",
+      reportsExport: "/analytics/admin/bi/reports/export/",
+      schedules: "/analytics/admin/bi/schedules/",
+    },
   },
   suppliers: {
     list: "/suppliers/",
@@ -236,6 +255,10 @@ export const API_ENDPOINTS = {
     payslip: (id: string) => `/payroll/admin/payslips/${id}/`,
     payslipPdf: (id: string) => `/payroll/admin/payslips/${id}/pdf/`,
     employeeHistory: (id: string) => `/payroll/admin/employees/${id}/payroll-history/`,
+  },
+  platform: {
+    company: "/platform/company/",
+    settings: "/platform/settings/",
   },
 } as const;
 

@@ -1,5 +1,6 @@
 import { Star } from "lucide-react";
 
+import { toDisplayRating } from "@/lib/format/rating";
 import { cn } from "@/lib/utils";
 
 export interface ProductRatingProps {
@@ -17,13 +18,14 @@ function ProductRating({
   showCount = true,
   className,
 }: ProductRatingProps) {
-  const rounded = Math.round(rating * 2) / 2;
+  const numericRating = toDisplayRating(rating);
+  const rounded = Math.round(numericRating * 2) / 2;
   const iconSize = size === "sm" ? "size-3.5" : "size-4";
 
   return (
     <div
       className={cn("flex flex-wrap items-center gap-1.5", className)}
-      aria-label={`${rating} out of 5 stars${reviewCount ? `, ${reviewCount} reviews` : ""}`}
+      aria-label={`${numericRating} out of 5 stars${reviewCount ? `, ${reviewCount} reviews` : ""}`}
     >
       <div className="flex items-center gap-0.5">
         {Array.from({ length: 5 }).map((_, index) => {
@@ -47,7 +49,7 @@ function ProductRating({
           size === "sm" ? "text-xs" : "text-sm"
         )}
       >
-        {rating.toFixed(1)}
+        {numericRating.toFixed(1)}
       </span>
       {showCount && reviewCount !== undefined ? (
         <span className={cn("text-muted-foreground", size === "sm" ? "text-xs" : "text-sm")}>

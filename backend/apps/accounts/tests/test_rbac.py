@@ -40,6 +40,12 @@ class RBACTestCase(TestCase):
         self.assertIn(PermissionCodename.ORDERS_MANAGE, perms)
         self.assertNotIn(PermissionCodename.INVENTORY_MANAGE, perms)
 
+    def test_manager_can_view_wms(self):
+        user = self._create_user("mgr-wms@example.com", role=RoleSlug.MANAGER, is_staff=True)
+        perms = PermissionService.get_user_permissions(user)
+        self.assertIn(PermissionCodename.WMS_VIEW, perms)
+        self.assertIn(PermissionCodename.WMS_MANAGE, perms)
+
     def test_customer_has_store_checkout_only(self):
         user = self._create_user("cust@example.com", role=RoleSlug.CUSTOMER)
         perms = PermissionService.get_user_permissions(user)

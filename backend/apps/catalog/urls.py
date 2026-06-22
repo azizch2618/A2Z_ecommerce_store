@@ -5,6 +5,8 @@ from apps.catalog.admin_views import (
     AdminBrandListCreateView,
     AdminCategoryDetailView,
     AdminCategoryListCreateView,
+    AdminProductDetailView,
+    AdminProductListCreateView,
 )
 from apps.catalog.views import (
     BrandListView,
@@ -37,5 +39,11 @@ urlpatterns = [
         "admin/brands/<uuid:brand_id>/",
         AdminBrandDetailView.as_view(),
         name="admin-brand-detail",
+    ),
+    path("admin/products/", AdminProductListCreateView.as_view(), name="admin-product-list"),
+    path(
+        "admin/products/<uuid:product_id>/",
+        AdminProductDetailView.as_view(),
+        name="admin-product-detail",
     ),
 ]

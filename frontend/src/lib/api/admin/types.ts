@@ -1,3 +1,5 @@
+import type { Quote } from "./quotes-types";
+
 export type OrderStatus =
   | "pending"
   | "awaiting_payment"
@@ -82,6 +84,69 @@ export interface AdminCustomer {
   joinedAt: string;
 }
 
+export interface AdminCustomerOrganization {
+  id: string;
+  legalName: string;
+  tradingName: string;
+  abn: string;
+  email: string;
+  phone: string;
+  segment: string;
+}
+
+export interface AdminCustomerProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  customerType: string;
+  tradeStatus: TradeStatus | null;
+  joinedAt: string;
+  organization: AdminCustomerOrganization | null;
+}
+
+export interface AdminCustomerLifetimeValue {
+  totalSpentCents: number;
+  orderCount: number;
+  averageOrderCents: number;
+  quoteCount: number;
+  acceptedQuoteValueCents: number;
+}
+
+export interface AdminCustomerTradeAccount {
+  id: string | null;
+  accountNumber: string | null;
+  status: string | null;
+  tier: string | null;
+  creditLimitCents: number;
+  creditUsedCents: number;
+  creditAvailableCents: number;
+  paymentTermsDays: number | null;
+}
+
+export interface AdminCustomerOrderSummary {
+  id: string;
+  orderNumber: string;
+  status: string;
+  paymentStatus: string;
+  itemCount: number;
+  totalIncGstCents: number;
+  currencyCode: string;
+  placedAt: string | null;
+  customerName: string;
+  customerEmail: string;
+}
+
+export interface AdminCustomerDetail {
+  profile: AdminCustomerProfile;
+  partyId: string | null;
+  lifetimeValue: AdminCustomerLifetimeValue;
+  tradeAccount: AdminCustomerTradeAccount | null;
+  orders: AdminCustomerOrderSummary[];
+  quotes: Quote[];
+  crmActivities: CrmTimelineEntry[];
+}
+
 export interface TradeApplication {
   id: string;
   companyName: string;
@@ -109,15 +174,54 @@ export interface AdminNotification {
   read: boolean;
 }
 
+export interface AdminProductImage {
+  url: string;
+  altText: string;
+  sortOrder: number;
+  isPrimary: boolean;
+}
+
 export interface AdminProduct {
   id: string;
   name: string;
+  slug: string;
   sku: string;
+  brandId: string | null;
   brand: string;
+  categoryId: string | null;
   category: string;
+  sellPriceExGstCents: number;
+  costPriceCents: number;
+  gstRate: string;
+  gstCents: number;
+  sellPriceIncGstCents: number;
   priceCents: number;
   stock: number;
-  status: "active" | "draft" | "archived";
+  isActive: boolean;
+  status: "active" | "inactive" | "draft" | "archived";
+  shortDescription: string;
+  description: string;
+  images: AdminProductImage[];
+}
+
+export interface AdminProductWritePayload {
+  name: string;
+  slug?: string;
+  sku: string;
+  brand_id?: string | null;
+  category_id?: string | null;
+  sell_price_ex_gst_cents: number;
+  cost_price_cents?: number;
+  stock?: number;
+  is_active?: boolean;
+  short_description?: string;
+  description?: string;
+  images?: Array<{
+    url: string;
+    alt_text?: string;
+    sort_order?: number;
+    is_primary?: boolean;
+  }>;
 }
 
 export interface AdminCategory {

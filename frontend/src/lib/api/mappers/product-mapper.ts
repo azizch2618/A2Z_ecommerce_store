@@ -3,6 +3,9 @@ import type { ProductDetail as UiProductDetail } from "@/config/product-detail";
 import type { ProductDetail as ApiProductDetail, ProductSummary } from "@/lib/api/types/product";
 import type { ListingProduct } from "@/types/product";
 import { formatAudFromCents } from "@/lib/format/currency";
+import { parseProductRating, parseProductRatingOrZero } from "@/lib/format/rating";
+
+const UNKNOWN_BRAND = "Unknown";
 
 function stockFromApi(status: string): ListingProduct["stock"] {
   if (status === "in_stock" || status === "low_stock" || status === "out_of_stock") {
@@ -15,19 +18,19 @@ function stockFromApi(status: string): ListingProduct["stock"] {
 }
 
 export function mapApiProductToListing(product: ProductSummary): ListingProduct {
-  const incCents = product.price.amount_inc_gst_cents;
+  const incCents = product.price?.amount_inc_gst_cents ?? 0;
   return {
     id: product.id,
-    brand: product.brand.name,
-    brandId: product.brand.slug,
+    brand: product.brand?.name ?? UNKNOWN_BRAND,
+    brandId: product.brand?.slug ?? undefined,
     name: product.name,
     sku: product.default_variant?.sku ?? "",
     price: formatAudFromCents(incCents),
     priceValue: incCents / 100,
-    stock: stockFromApi(product.stock.status),
+    stock: stockFromApi(product.stock?.status ?? "out_of_stock"),
     href: `/products/${product.slug}`,
     description: product.short_description ?? undefined,
-    rating: product.average_rating ?? undefined,
+    rating: parseProductRating(product.average_rating),
     reviewCount: product.review_count ?? undefined,
     imageSrc: product.primary_image?.url ?? undefined,
     imageAlt: product.primary_image?.alt_text ?? product.name,
@@ -48,35 +51,36 @@ export function mapApiProductToCategoryProduct(product: ProductSummary): Categor
     popularity: product.review_count ?? 0,
     createdAt: new Date().toISOString(),
     availability: stock,
-    rating: product.average_rating ?? 0,
+    rating: parseProductRatingOrZero(product.average_rating),
     reviewCount: product.review_count ?? 0,
-    categoryId: product.brand.slug,
+    categoryId: product.brand?.slug,
   };
 }
 
 export function mapApiProductToDetail(product: ApiProductDetail): UiProductDetail {
   const variant = product.variants.find((v) => v.is_default) ?? product.variants[0];
-  const incCents = variant?.price.amount_inc_gst_cents ?? 0;
+  const incCents = variant?.price?.amount_inc_gst_cents ?? 0;
   const primaryCategory = product.categories.find((c) => c.is_primary) ?? product.categories[0];
-  const stockStatus = stockFromApi(variant?.stock.status ?? "in_stock");
+  const stockStatus = stockFromApi(variant?.stock?.status ?? "out_of_stock");
+  const brandSlug = product.brand?.slug;
 
   return {
     id: product.id,
     slug: product.slug,
     name: product.name,
     sku: variant?.sku ?? "",
-    brand: product.brand.name,
-    brandHref: `/brands/${product.brand.slug}`,
+    brand: product.brand?.name ?? UNKNOWN_BRAND,
+    brandHref: brandSlug ? `/brands/${brandSlug}` : "/products",
     category: primaryCategory?.name ?? "Products",
     categoryHref: primaryCategory ? `/products?category=${primaryCategory.slug}` : "/products",
     price: formatAudFromCents(incCents),
     priceValue: incCents / 100,
     stock: stockStatus === "back_order" ? "in_stock" : stockStatus,
-    stockCount: variant?.stock.quantity_available ?? 0,
+    stockCount: variant?.stock?.quantity_available ?? 0,
     shortDescription: product.short_description ?? "",
     longDescription: product.description,
     highlights: product.highlights ?? [],
-    images: product.images.map((img, index) => ({
+    images: (product.images ?? []).map((img, index) => ({
       id: String(img.id ?? index),
       label: img.alt_text ?? product.name,
       alt: img.alt_text ?? product.name,
@@ -101,7 +105,7 @@ export function mapApiProductToDetail(product: ApiProductDetail): UiProductDetai
       date: review.created_at,
       verified: review.is_verified_purchase,
     })),
-    relatedProductIds: product.related_products.map((p) => p.id),
+    relatedProductIds: (product.related_products ?? []).map((p) => p.id),
     breadcrumbs: [
       { label: "Home", href: "/" },
       { label: "Products", href: "/products" },
@@ -109,8 +113,8 @@ export function mapApiProductToDetail(product: ApiProductDetail): UiProductDetai
     ],
     warranty: "Manufacturer warranty applies. See product documentation for terms.",
     deliveryNote: "Ships Australia-wide from Sydney DC. GST included.",
-    rating: product.average_rating,
-    reviewCount: product.review_count,
+    rating: parseProductRatingOrZero(product.average_rating),
+    reviewCount: product.review_count ?? 0,
     defaultVariantId: variant?.id,
   };
 }
