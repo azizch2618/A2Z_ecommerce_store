@@ -1,4 +1,4 @@
 -r base.txt
 
 # Error tracking and performance monitoring
-sentry-sdk>=2.19,<3.0
+sentry-sdk>=2.63.0,<3.0
